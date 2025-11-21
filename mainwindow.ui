@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>947</width>
+    <height>630</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* Nền vàng chính cho cửa sổ */
+QMainWindow {
+    background-color: #FDD85D;
+}
+
+/* Trang Đăng Nhập: Nền trắng, bo tròn */
+#loginPage {
+    background-color: #FFFFFF;
+    border-radius: 15px; 
+    margin: 20px; 
+}
+
+/* Panel Logo (bên trái) - MÀU VÀNG */
+#logoPanel {
+    background-color: #FDD85D; 
+    border-top-left-radius: 15px; 
+    border-bottom-left-radius: 15px; 
+	padding: 15px;
+}
+
+/* Form Đăng Nhập (bên phải) */
+#loginFormPanel {
+    background-color: transparent; 
+    padding: 20px; 
+}
+
+/* ---- STYLE RIÊNG CHO TRANG TẠO TÀI KHOẢN ---- */
+
+/* Trang 2: Nền vàng (để lộ ra xung quanh) */
+#createAccountPage {
+    background-color: #FDD85D; 
+}
+
+/* &quot;Form Container&quot; (HỘP TRẮNG Ở GIỮA) */
+#createAccountFormContainer {
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    padding: 20px;
+    /* (QSS sẽ tự động làm hộp trắng này nổi lên) */
+}
+
+/* ---- (CÁC STYLE CHUNG CHO CẢ 2 FORM) ---- */
+
+/* Tiêu đề &quot;Đăng Nhập&quot; &amp; &quot;Tạo Tài Khoản&quot; */
+QLabel#loginTitleLabel, QLabel#createAccountTitleLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333333; /* Chữ đen */
+    margin-bottom: 10px;
+    background-color: transparent; /* Đảm bảo nền trong suốt */
+}
+
+/* Các QLabel thường (ID, Họ và tên...) */
+QLabel {
+    font-size: 14px;
+    color: #555555; /* Chữ xám */
+    background-color: transparent;
+}
+
+/* Ô nhập liệu (cho cả 2 trang) */
+QLineEdit {
+    font-size: 15px;
+    background-color: #F8F8F8; 
+    border: 1px solid #E0E0E0;
+    border-radius: 10px; 
+    padding: 12px; 
+    min-height: 30px; 
+    margin: 5px; 
+    color: #333333; /* Chữ gõ vào màu đen */
+}
+QLineEdit:focus {
+    border: 2px solid #FDD85D; /* Viền vàng khi gõ */
+}
+
+/* Nút bấm chính (cho cả 2 trang) */
+QPushButton#loginButton, QPushButton#registerButton {
+    background-color: #FDD85D; 
+    color: #333333; 
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 40px; 
+    margin-top: 15px;
+}
+QPushButton#loginButton:hover, QPushButton#registerButton:hover {
+    background-color: #FBCB2E; /* Vàng đậm hơn */
+}
+
+/* Nút bấm dạng link (cho cả 2 trang) */
+QPushButton#goToCreateAccountButton, QPushButton#backToLoginButton {
+    background-color: transparent;
+    border: none;
+    color: #0078D7; 
+    font-size: 14px;
+    text-decoration: underline;
+    margin-top: 20px;
+}
+QPushButton#goToCreateAccountButton:hover, QPushButton#backToLoginButton:hover {
+    color: #005A9E;
+}
+
+/* GroupBox cho giới tính */
+QGroupBox {
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    margin-top: 20px; 
+    padding: 15px;
+    background-color: transparent; /* Nền trong suốt */
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; 
+    padding: 0 5px;
+    color: #555555;
+    font-weight: bold;
+}
+QRadioButton {
+    font-size: 15px;
+    color: #333333;
+    padding: 5px;
+    background-color: transparent;
+}
+/* Xóa viền đỏ khi focus (lỗi dark mode) */
+QGroupBox:focus {
+    border: 1px solid #E0E0E0;
+}
+/* Ảnh con thỏ (logo chính) */
+QLabel#logoImageLabel {
+    qproperty-alignment: 'AlignCenter';
+}
+/* ---- HEADER (MỚI) ---- */
+#headerContainer {
+    /* Đảm bảo nền trong suốt */
+    background-color: transparent;
+}
+#titleLabel {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333333;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+/* Đặt kích thước cố định cho các icon/logo */
+#cartIconLabel, #itLogoLabel, #bkLogoLabel {
+    min-width: 48px; max-width: 48px;
+    min-height: 48px; max-height: 48px;
+}
+
+/* ---- FOOTER (MỚI) ---- */
+#footerContainer {
+    /* Căn các dòng chữ xuống dưới cùng */
+    background-color: transparent;
+}
+/* Style chung cho các dòng chữ trong footer */
+#madeByLabel, #author1Label, #author2Label {
+    font-size: 12px;
+    color: #444444; /* Màu xám đậm */
+	font-weight: bold;
+}
+/* Căn lề trái cho footer */
+#madeByLabel { qproperty-alignment: 'AlignLeft'; }
+#author1Label { qproperty-alignment: 'AlignLeft'; }
+#author2Label { qproperty-alignment: 'AlignLeft'; }</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QStackedWidget" name="mainStackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="loginPage">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+        <item>
+         <widget class="QWidget" name="logoPanel" native="true">
+          <widget class="QWidget" name="headerContainer" native="true">
+           <property name="geometry">
+            <rect>
+             <x>9</x>
+             <y>9</y>
+             <width>431</width>
+             <height>81</height>
+            </rect>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="cartIconLabel">
+              <property name="maximumSize">
+               <size>
+                <width>48</width>
+                <height>48</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="images.qrc">:/images/images/cartlogin.png</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="titleLabel">
+              <property name="text">
+               <string>PBL2 – Petshop management</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="itLogoLabel">
+              <property name="maximumSize">
+               <size>
+                <width>48</width>
+                <height>48</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="images.qrc">:/images/images/khoacnttlogo.jpg</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="bkLogoLabel">
+              <property name="maximumSize">
+               <size>
+                <width>48</width>
+                <height>48</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="images.qrc">:/images/images/logodut.jpg</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QLabel" name="logoImageLabel">
+           <property name="geometry">
+            <rect>
+             <x>70</x>
+             <y>130</y>
+             <width>300</width>
+             <height>300</height>
+            </rect>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>300</height>
+            </size>
+           </property>
+           <property name="lineWidth">
+            <number>1</number>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="images.qrc">:/images/images/mylogo.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
+          </widget>
+          <widget class="QWidget" name="footerContainer" native="true">
+           <property name="geometry">
+            <rect>
+             <x>10</x>
+             <y>490</y>
+             <width>431</width>
+             <height>91</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLabel" name="madeByLabel">
+              <property name="text">
+               <string>Made by:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="author1Label">
+              <property name="text">
+               <string>Tran Thi Hanh Nguyen – 102240154</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="author2Label">
+              <property name="text">
+               <string>Le Minh Tri – 102240170</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="loginFormPanel" native="true">
+          <widget class="QLabel" name="loginTitleLabel">
+           <property name="geometry">
+            <rect>
+             <x>170</x>
+             <y>100</y>
+             <width>111</width>
+             <height>91</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>LOGIN</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="usernameLineEdit">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>190</y>
+             <width>311</width>
+             <height>66</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="placeholderText">
+            <string>Username</string>
+           </property>
+          </widget>
+          <widget class="QLineEdit" name="passwordLineEdit">
+           <property name="geometry">
+            <rect>
+             <x>60</x>
+             <y>260</y>
+             <width>311</width>
+             <height>66</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="echoMode">
+            <enum>QLineEdit::EchoMode::Password</enum>
+           </property>
+           <property name="placeholderText">
+            <string>Password</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="loginButton">
+           <property name="geometry">
+            <rect>
+             <x>120</x>
+             <y>380</y>
+             <width>191</width>
+             <height>55</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>GET STARTED</string>
+           </property>
+          </widget>
+          <widget class="QPushButton" name="goToCreateAccountButton">
+           <property name="geometry">
+            <rect>
+             <x>110</x>
+             <y>330</y>
+             <width>201</width>
+             <height>41</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>Create account</string>
+           </property>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="createAccountPage">
+       <widget class="QWidget" name="createAccountFormContainer" native="true">
+        <property name="geometry">
+         <rect>
+          <x>210</x>
+          <y>50</y>
+          <width>461</width>
+          <height>501</height>
+         </rect>
+        </property>
+        <widget class="QLabel" name="createAccountTitleLabel">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>10</y>
+           <width>231</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>TẠO TÀI KHOẢN</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="idLineEdit_create">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>50</y>
+           <width>231</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="placeholderText">
+          <string>ID (Số điện thoại)</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="passwordLineEdit_create">
+         <property name="geometry">
+          <rect>
+           <x>260</x>
+           <y>50</y>
+           <width>191</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="placeholderText">
+          <string>Mật khẩu</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="nameLineEdit_create">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>140</y>
+           <width>251</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="placeholderText">
+          <string>Họ và tên</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="streetLineEdit_create">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>230</y>
+           <width>431</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="placeholderText">
+          <string>Địa chỉ</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="cityLineEdit_create">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>320</y>
+           <width>431</width>
+           <height>71</height>
+          </rect>
+         </property>
+         <property name="placeholderText">
+          <string>Tỉnh/Thành phố</string>
+         </property>
+        </widget>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="geometry">
+          <rect>
+           <x>280</x>
+           <y>130</y>
+           <width>161</width>
+           <height>81</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string/>
+         </property>
+         <widget class="QWidget" name="layoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>30</y>
+            <width>141</width>
+            <height>41</height>
+           </rect>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QRadioButton" name="maleRadioButton">
+             <property name="text">
+              <string>Nam</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QRadioButton" name="femaleRadioButton">
+             <property name="text">
+              <string>Nữ</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QPushButton" name="registerButton">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>400</y>
+           <width>181</width>
+           <height>55</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>TẠO TÀI KHOẢN</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="backToLoginButton">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>440</y>
+           <width>80</width>
+           <height>41</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Quay lại</string>
+         </property>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

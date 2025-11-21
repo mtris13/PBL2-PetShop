@@ -1,0 +1,2 @@
+SV002|Nguyen Van A|000|male|1500000.000000
+SV001|Tran Thi B|000|female|2000000.000000

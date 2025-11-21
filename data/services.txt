@@ -1,0 +1,10 @@
+SP001|Basic Spa Package|Relaxing spa treatment with bath and massage|200000|60
+SP002|Premium Spa Package|Luxury spa with aromatherapy and premium products|400000|90
+SP003|Express Spa|Quick refresh spa treatment|150000|30
+SP004|Deep Relaxation Spa|Full body massage and aromatherapy session|350000|120
+SP005|Paw & Nail Care|Specialized paw treatment and nail grooming|100000|45
+SP006|Fur Conditioning Spa|Deep conditioning treatment for healthy fur|250000|75
+SP007|Deluxe Bath & Blow Dry|Thorough bath and stylish blow-dry finish|180000|50
+SP008|Anti-Flea Treatment|Protective and cleansing treatment against fleas|220000|40
+SP009|Puppy Gentle Spa|Gentle spa experience tailored for puppies|160000|35
+SP010|Senior Pet Comfort Spa|Soothing spa session for older pets|300000|70

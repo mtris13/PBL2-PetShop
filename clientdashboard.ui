@@ -1,0 +1,1109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ClientDashboard</class>
+ <widget class="QWidget" name="ClientDashboard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>902</width>
+    <height>680</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* ----- CỘT TRÁI (NAV BAR) ----- */
+QWidget#navBar {
+    background-color: #FDD85D; /* Màu vàng chủ đạo */
+    border-right: 1px solid #E0E0E0; /* Viền xám mỏng */
+}
+QWidget#navBar QPushButton {
+    background-color: transparent; 
+    border: none; 
+    color: #333333; /* Chữ xám đậm (TƯỜNG MINH) */
+    font-size: 16px;
+    font-weight: bold;
+    padding: 15px; 
+    text-align: left; 
+}
+QWidget#navBar QPushButton:hover {
+    background-color: #FBCB2E; /* Vàng đậm hơn */
+}
+QPushButton#petsButton {
+    background-color: #FFFFFF; /* Nền trắng */
+    color: #FDD85D; /* Chữ vàng (TƯỜNG MINH) */
+}
+#dutTitleLabel {
+    font-weight: bold;
+    color: #333333; /* Chữ đen (TƯỜNG MINH) */
+}
+#callButton, #logoutButton {
+    color: #555555;
+    font-size: 14px;
+}
+
+/* ----- CỘT PHẢI (CONTENT AREA) ----- */
+QWidget#contentArea {
+    background-color: #FFFFFF; /* Nền trắng cho nội dung chính */
+}
+
+/* Header Bar (màu xanh) */
+QWidget#headerBar {
+    background-color: #5D9CFD; /* Màu xanh dương */
+    padding: 10px;
+}
+/* Chỉ QLabel BÊN TRONG headerBar mới có màu trắng */
+#headerBar QLabel {
+    color: #FFFFFF; /* Chữ trắng (TƯỜNG MINH) */
+}
+#welcomeTitleLabel, #userNameLabel {
+    font-size: 18px;
+    font-weight: bold;
+}
+#welcomeSubtitleLabel, #userRoleLabel {
+    font-size: 14px;
+}
+#petImagesWidget QLabel {
+    min-width: 40px; max-width: 40px;
+    min-height: 40px; max-height: 40px;
+}
+
+/* ----- TRANG PETS (NỘI DUNG) ----- */
+#petsPage {
+    background-color: #FFFFFF;
+}
+
+/* Tiêu đề &quot;Dogs On Sale&quot; */
+#petsTitleLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333; /* Chữ đen (TƯỜNG MINH) */
+    padding: 10px;
+}
+
+/* Thanh Tìm kiếm */
+#searchLineEdit {
+    font-size: 15px;
+    background-color: #F8F8F8; 
+    border: 1px solid #E0E0E0;
+    border-radius: 10px; 
+    padding: 10px; 
+    min-height: 25px;
+    color: #333333; /* Chữ gõ vào màu đen (TƯỜNG MINH) */
+}
+
+/* Nút &quot;dog&quot; và &quot;cat&quot; */
+#dogToggleButton, #catToggleButton {
+    background-color: #F0F0F0; 
+    color: #555555; /* Chữ xám (TƯỜNG MINH) */
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    min-height: 40px;
+    min-width: 80px;
+    margin-left: 5px;
+}
+#dogToggleButton:checked, #catToggleButton:checked {
+    background-color: #FDD85D; 
+    color: #333333;
+}
+
+/* ----- BẢNG THÚ CƯNG (QTableWidget) - STYLE NỀN SÁNG (QUAN TRỌNG) ----- */
+QTableWidget {
+    background-color: #FFFFFF; /* NỀN TRẮNG */
+    color: #333333; /* CHỮ ĐEN (TƯỜNG MINH) */
+    border: 1px solid #E0E0E0; 
+    gridline-color: #E0E0E0; 
+}
+QTableWidget::item {
+    padding: 10px;
+    border-bottom: 1px solid #E0E0E0; 
+}
+QTableWidget::item:alternate {
+    background-color: #F8F8F8; 
+}
+QTableWidget::item:!alternate {
+    background-color: #FFFFFF; 
+}
+QTableWidget::item:selected {
+    background-color: #FDD85D; 
+    color: #333333; 
+}
+
+/* HEADER CỦA BẢNG (TIÊU ĐỀ NGANG) */
+QHeaderView::section {
+    background-color: #5D9CFD; /* Nền xanh */
+    color: #FFFFFF; /* Chữ trắng (TƯỜNG MINH) */
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+}
+/* Header dọc (số 1, 2, 3...) */
+QHeaderView::section:vertical {
+    background-color: #F8F8F8; 
+    color: #333333; /* Chữ đen (TƯỜNG MINH) */
+    border-right: 1px solid #E0E0E0;
+}
+
+/* Sửa lỗi ô A(0,0) (góc trên-trái) */
+QTableCornerButton::section {
+    background-color: #5D9CFD; 
+    border: none;
+}
+
+/* Nút &quot;ADD TO CART&quot; */
+#addToCartButton {
+    background-color: #5D9CFD; 
+    color: #FFFFFF; /* Chữ trắng (TƯỜNG MINH) */
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 40px; 
+    margin: 10px; 
+}
+#addToCartButton:hover {
+    background-color: #4A89E8;
+}
+
+/* Sửa lỗi QSS Cũ (nếu có) */
+#headerBar QLabel {
+    color: #FFFFFF;
+}
+/* ----- TRANG SPA (NỘI DUNG) ----- */
+#spaPage {
+    background-color: #FFFFFF;
+}
+
+/* Tiêu đề &quot;Dịch vụ Spa&quot; */
+#spaTitleLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    padding: 10px;
+}
+
+/* Bảng Dịch vụ Spa (giống hệt bảng Pets) */
+#spaTableWidget {
+    background-color: #FFFFFF; 
+    color: #333333; 
+    border: 1px solid #E0E0E0; 
+    gridline-color: #E0E0E0; 
+}
+#spaTableWidget::item {
+    padding: 10px;
+    color: #333333; 
+    border-bottom: 1px solid #E0E0E0; 
+}
+#spaTableWidget::item:selected {
+    background-color: #FDD85D; 
+    color: #333333; 
+}
+
+/* Thanh Đặt lịch (ở dưới) */
+#bookingBar {
+    background-color: #F8F8F8; /* Nền xám nhạt */
+    border-top: 1px solid #E0E0E0;
+    padding: 5px;
+}
+#bookingBar QLabel {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+QDateEdit, QTimeEdit {
+    font-size: 14px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #CCC;
+}
+#bookSpaButton {
+    background-color: #5D9CFD; /* Màu xanh */
+    color: #FFFFFF; 
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 40px; 
+    padding-left: 15px;
+    padding-right: 15px;
+}
+#bookSpaButton:hover {
+    background-color: #4A89E8;
+}
+/* ----- TRANG GIỎ HÀNG (MỚI) ----- */
+#cartPage {
+    background-color: #FFFFFF;
+}
+
+/* Tiêu đề &quot;My Cart&quot; */
+#cartTitleLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    padding: 10px;
+}
+
+/* Bảng Giỏ hàng */
+#cartTableWidget {
+    /* (Nó sẽ tự động dùng style QTableWidget chung
+       mà chúng ta đã viết cho trang Pets) */
+}
+
+/* Nút &quot;REMOVE&quot; (Màu xám/bạc) */
+#removeButton {
+    background-color: #E0E0E0; /* Xám nhạt */
+    color: #333333; /* Chữ đen */
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 40px; 
+    padding-left: 15px;
+    padding-right: 15px;
+    margin: 10px;
+}
+#removeButton:hover {
+    background-color: #CCCCCC;
+}
+
+/* Nút &quot;BUY&quot; (Màu xanh) */
+#buyButton {
+    background-color: #5D9CFD; /* Màu xanh */
+    color: #FFFFFF; 
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    min-height: 40px; 
+    padding-left: 20px;
+    padding-right: 20px;
+    margin: 10px;
+}
+#buyButton:hover {
+    background-color: #4A89E8;
+}
+/* Nút Hủy Lịch */
+#cancelBookingButton {
+    background-color: #FF6B6B; /* Màu đỏ nhạt */
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 10px 20px;
+}
+#cancelBookingButton:hover {
+    background-color: #FF5252;
+}
+#bookingsTitleLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    padding: 10px;
+}
+/* Nút Chuyển đổi Lịch sử */
+#purchaseHistoryButton, #bookingHistoryButton {
+    background-color: #F0F0F0; 
+    color: #555555;
+    border: none;
+    border-radius: 10px; /* Bo tròn nhiều hơn */
+    font-weight: bold;
+    padding: 10px 20px;
+    margin: 0 10px;
+}
+#purchaseHistoryButton:checked, #bookingHistoryButton:checked {
+    background-color: #FDD85D; /* Màu vàng khi chọn */
+    color: #333333;
+}
+#historyTitleLabel {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333333;
+    padding: 10px;
+}
+/* Hộp thông tin màu vàng */
+#profileInfoContainer {
+    background-color: #FDD85D; /* Màu vàng */
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px;
+}
+#profileInfoContainer QLabel {
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 10px;
+margin-left: 10px;
+}
+
+/* Nút EDIT và SAVE (Màu xanh) */
+#editProfileButton, #saveProfileButton {
+    background-color: #5D9CFD;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    min-height: 40px;
+    padding: 0 30px;
+}
+
+/* Nút Cancel */
+#cancelProfileButton {
+    background-color: #E0E0E0;
+    color: #333;
+    border-radius: 10px;
+    min-height: 40px;
+}
+QRadioButton {
+    font-size: 15px;
+    color: #333333; /* Chữ đen */
+    padding: 5px;
+    background-color: transparent;
+}</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,6">
+   <item>
+    <widget class="QWidget" name="navBar" native="true">
+     <property name="maximumSize">
+      <size>
+       <width>145</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,0,2,1,2,2,4,2,2,2,2">
+      <item>
+       <widget class="QWidget" name="navHeader" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="itLogoLabel_nav">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="images.qrc">:/images/images/khoacnttlogo.jpg</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="bkLogoLabel_nav">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="images.qrc">:/images/images/logodut.jpg</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="dutLogoLabel_nav">
+           <property name="maximumSize">
+            <size>
+             <width>40</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="images.qrc">:/images/images/mylogo.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="dutTitleLabel">
+        <property name="text">
+         <string>DUT Petshop</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="petsButton">
+        <property name="text">
+         <string>Pets</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="spaButton">
+        <property name="text">
+         <string>Spa Services</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cartButton">
+        <property name="text">
+         <string>My cart</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bookingsButton">
+        <property name="text">
+         <string>My booking</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="historyButton">
+        <property name="text">
+         <string>History</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="profileButton">
+        <property name="text">
+         <string>My profile</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>68</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="callButton">
+        <property name="text">
+         <string>Help</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="logoutButton">
+        <property name="text">
+         <string>Log Out</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="contentArea" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+      <item>
+       <widget class="QWidget" name="headerBar" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,2,1">
+         <item>
+          <widget class="QWidget" name="welcomeWidget" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QLabel" name="welcomeTitleLabel">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="welcomeSubtitleLabel">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>93</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="images.qrc">:/images/images/pets.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="userInfoWidget" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QWidget" name="userInfoTextWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <item>
+                <widget class="QLabel" name="userNameLabel">
+                 <property name="text">
+                  <string>TextLabel</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="userRoleLabel">
+                 <property name="text">
+                  <string>TextLabel</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="pawIconLabel">
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="images.qrc">:/images/images/user.png</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="pageStackedWidget">
+        <property name="currentIndex">
+         <number>7</number>
+        </property>
+        <widget class="QWidget" name="petsPage">
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,1,10,1">
+          <item>
+           <widget class="QWidget" name="petsTitleBar" native="true">
+            <property name="maximumSize">
+             <size>
+              <width>10000000</width>
+              <height>80</height>
+             </size>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QLabel" name="petsTitleLabel">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Pets On Sale</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="searchBar" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLineEdit" name="searchLineEdit">
+               <property name="placeholderText">
+                <string>Search...</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="dogToggleButton">
+               <property name="text">
+                <string>Dog</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="catToggleButton">
+               <property name="text">
+                <string>Cat</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="petsTableWidget"/>
+          </item>
+          <item>
+           <widget class="QWidget" name="cartButtonContainer" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>529</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="addToCartButton">
+               <property name="text">
+                <string>ADD TO CART</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="spaPage">
+         <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,5,2">
+          <item>
+           <widget class="QLabel" name="spaTitleLabel">
+            <property name="text">
+             <string>Spa Services</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="spaTableWidget"/>
+          </item>
+          <item>
+           <widget class="QWidget" name="bookingBar" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="2,2,2,2,5,2">
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Date:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDateEdit" name="bookingDateEdit"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Time:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTimeEdit" name="bookingTimeEdit"/>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>187</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="bookSpaButton">
+               <property name="text">
+                <string>BOOK</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="cartPage">
+         <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,5,2">
+          <item>
+           <widget class="QLabel" name="cartTitleLabel">
+            <property name="text">
+             <string>My Cart</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="cartTableWidget"/>
+          </item>
+          <item>
+           <widget class="QWidget" name="cartButtonContainer_2" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="3,1,1">
+             <item>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="removeButton">
+               <property name="text">
+                <string>REMOVE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="buyButton">
+               <property name="text">
+                <string>BUY</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="bookingsPage">
+         <layout class="QVBoxLayout" name="verticalLayout_8" stretch="1,5,2">
+          <item>
+           <widget class="QLabel" name="bookingsTitleLabel">
+            <property name="text">
+             <string>My Booking</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="bookingsTableWidget"/>
+          </item>
+          <item>
+           <widget class="QWidget" name="bookingsButtonContainer" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="5,1">
+             <item>
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>543</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="cancelBookingButton">
+               <property name="text">
+                <string>CANCEL</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="historyPage">
+         <layout class="QVBoxLayout" name="verticalLayout_9" stretch="1,2,5">
+          <item>
+           <widget class="QLabel" name="historyTitleLabel">
+            <property name="text">
+             <string>My History</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="historyToggleContainer" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="4,1,1">
+             <item>
+              <spacer name="horizontalSpacer_5">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>377</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="purchaseHistoryButton">
+               <property name="text">
+                <string>PURCHASE</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="bookingHistoryButton">
+               <property name="text">
+                <string>BOOKING</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="historyTableWidget"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="profileViewPage">
+         <layout class="QVBoxLayout" name="verticalLayout_10" stretch="1,5,1">
+          <item>
+           <widget class="QLabel" name="profileTitleLabel">
+            <property name="text">
+             <string>My Profile</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="profileInfoContainer" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_11">
+             <item>
+              <widget class="QLabel" name="valId">
+               <property name="text">
+                <string>ID</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="valName">
+               <property name="text">
+                <string>Name</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="valGender">
+               <property name="text">
+                <string>Gender</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="valAddress">
+               <property name="text">
+                <string>Address</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="valCity">
+               <property name="text">
+                <string>City</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="profileButtonContainer" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="4,1">
+             <item>
+              <spacer name="horizontalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>521</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="editProfileButton">
+               <property name="text">
+                <string>EDIT</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="profileEditPage">
+         <layout class="QVBoxLayout" name="verticalLayout_12" stretch="1,1,1,1,1,3,1,1,1,1,1">
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>23</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="editIdInput">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="editPassInput"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="editNameInput"/>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Gender</string>
+            </property>
+            <widget class="QRadioButton" name="editMaleRadio">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>40</y>
+               <width>111</width>
+               <height>25</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Male</string>
+             </property>
+            </widget>
+            <widget class="QRadioButton" name="editFemaleRadio">
+             <property name="geometry">
+              <rect>
+               <x>70</x>
+               <y>40</y>
+               <width>111</width>
+               <height>25</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Female</string>
+             </property>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="editStreetInput"/>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="editCityInput"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="saveProfileButton">
+            <property name="text">
+             <string>SAVE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cancelProfileButton">
+            <property name="text">
+             <string>CANCEL</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>23</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="helpPage"/>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

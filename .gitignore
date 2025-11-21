@@ -1,0 +1,35 @@
+# C++ compiled files
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.exe
+*.a
+*.lib
+
+# Qt specific
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Makefile*
+*build-*
+
+# Qt Creator user settings (Tuyệt đối không đẩy file này lên)
+*.pro.user
+*.pro.user.*
+CMakeLists.txt.user
+*.autosave
+
+# Backup files
+*.bak
+*~
+
+# Thư mục build (nếu có nằm trong folder dự án)
+debug/
+release/
+build/
+
+# Các file tạm khi xóa (như logic mình vừa làm)
+temp.txt
+temp_*.txt
