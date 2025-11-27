@@ -9,7 +9,6 @@ protected:
   string name;
   string password;
   string gender;
-  // string role; // deleted role.
 
 public:
   Account() : id(""), name(""), password(""), gender("") {}

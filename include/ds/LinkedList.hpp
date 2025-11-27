@@ -55,12 +55,17 @@ public:
   void clear();
   void swap(T &a, T &b);
 };
+
 template <typename T>
 LinkedList<T>::LinkedList(const LinkedList<T> &other)
-    : head(nullptr), tail(nullptr), size(0) {
-  Node<T> *current = other.head;
+    : head(nullptr), tail(nullptr), size(0) { // Khởi tạo danh sách mới rỗng
+
+  Node<T> *current = other.head; // Bắt đầu từ head của list cần copy
+
+  // Dùng while để duyệt hết danh sách
   while (current != nullptr) {
-    pushBack(current->getData()); // Node được tạo mới, copy dữ liệu
+    pushBack(
+        current->getData()); // pushBack tự động tạo Node mới và cập nhật tail
     current = current->getNext();
   }
 }

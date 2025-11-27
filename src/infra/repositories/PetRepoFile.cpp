@@ -205,16 +205,15 @@ LinkedList<string> PetRepository::getAllDogId() {
   return dogIds;
 }
 
-// PetRepoFile.cpp
 Dog PetRepository::getDogInfo(const string &petCode) {
   Node<Dog> *current = m_dogs.getHead();
   while (current != nullptr) {
-    if (current->getData().getId() == petCode) { // <-- SỬA: Dùng getData()
+    if (current->getData().getId() == petCode) {
       return current->getData();
     }
-    current = current->getNext(); // <-- SỬA: Dùng getNext()
+    current = current->getNext();
   }
-  return Dog(); // Trả về Dog rỗng nếu không tìm thấy
+  return Dog();
 }
 
 // PetRepoFile.cpp
@@ -615,29 +614,30 @@ LinkedList<Dog> PetRepository::searchDog(string, string &keyword) {
   while (node) {
     Dog d = node->getData();
 
-    // 1. Lấy dữ liệu các trường
     string id = d.getId();
     string name = d.getName();
     string breed = d.getBreed();
+    string desc = d.getDescription(); // <-- Lấy description
 
-    // 2. Chuyển tất cả sang chữ thường để so sánh chính xác
-    transform(id.begin(), id.end(), id.begin(),
-              ::tolower); // <--- QUAN TRỌNG: Chuyển ID sang thường
+    // Chuyển tất cả sang chữ thường để so sánh
+    transform(id.begin(), id.end(), id.begin(), ::tolower);
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     transform(breed.begin(), breed.end(), breed.begin(), ::tolower);
+    transform(desc.begin(), desc.end(), desc.begin(),
+              ::tolower); // <-- chuyển description
 
-    // 3. Kiểm tra: Nếu ID hoặc Tên hoặc Giống chứa từ khóa -> Lấy
-    if (id.find(key) != string::npos || // <--- ĐÃ THÊM DÒNG NÀY ĐỂ TÌM ID
-        name.find(key) != string::npos || breed.find(key) != string::npos) {
-
+    // Kiểm tra: ID, Name, Breed, Description
+    if (id.find(key) != string::npos || name.find(key) != string::npos ||
+        breed.find(key) != string::npos ||
+        desc.find(key) != string::npos) { // <-- kiểm tra description
       result.pushBack(d);
     }
+
     node = node->getNext();
   }
   return result;
 }
 
-// --- SỬA LẠI HÀM SEARCH CAT ---
 LinkedList<Cat> PetRepository::searchCat(string, string &keyword) {
   LinkedList<Cat> result;
   string key = keyword;
@@ -650,16 +650,20 @@ LinkedList<Cat> PetRepository::searchCat(string, string &keyword) {
     string id = c.getId();
     string name = c.getName();
     string breed = c.getBreed();
+    string desc = c.getDescription(); // <-- Lấy description
 
-    transform(id.begin(), id.end(), id.begin(), ::tolower); // <--- QUAN TRỌNG
+    transform(id.begin(), id.end(), id.begin(), ::tolower);
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     transform(breed.begin(), breed.end(), breed.begin(), ::tolower);
+    transform(desc.begin(), desc.end(), desc.begin(),
+              ::tolower); // <-- chuyển description
 
-    if (id.find(key) != string::npos || // <--- ĐÃ THÊM DÒNG NÀY ĐỂ TÌM ID
-        name.find(key) != string::npos || breed.find(key) != string::npos) {
-
+    if (id.find(key) != string::npos || name.find(key) != string::npos ||
+        breed.find(key) != string::npos ||
+        desc.find(key) != string::npos) { // <-- kiểm tra description
       result.pushBack(c);
     }
+
     node = node->getNext();
   }
   return result;

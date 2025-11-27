@@ -28,10 +28,8 @@ AdminDashboard::AdminDashboard(Admin* admin,
 {
     ui->setupUi(this);
 
-    // 1. Hiển thị tên Admin
     ui->userNameLabel->setText(QString::fromStdString(m_currentAdmin->getName()));
 
-    // 2. Nhóm các nút NavBar
     m_navGroup = new QButtonGroup(this);
     m_navGroup->addButton(ui->manageAccountsButton);
     m_navGroup->addButton(ui->managePetsButton);
@@ -41,7 +39,6 @@ AdminDashboard::AdminDashboard(Admin* admin,
     m_navGroup->addButton(ui->profileButton);
     m_navGroup->setExclusive(true);
 
-    // 3. Kết nối nút bấm
     connect(ui->manageAccountsButton, &QPushButton::clicked, this, &AdminDashboard::handleManageAccountsClick);
     connect(ui->managePetsButton, &QPushButton::clicked, this, &AdminDashboard::handleManagePetsClick);
     connect(ui->manageSpaButton, &QPushButton::clicked, this, &AdminDashboard::handleManageSpaClick);
@@ -50,7 +47,6 @@ AdminDashboard::AdminDashboard(Admin* admin,
     connect(ui->profileButton, &QPushButton::clicked, this, &AdminDashboard::handleProfileClick);
     connect(ui->logoutButton, &QPushButton::clicked, this, &AdminDashboard::handleLogoutClick);
 
-    // Mặc định vào trang Quản lý tài khoản
     ui->manageAccountsButton->setChecked(true);
     ui->pageStackedWidget->setCurrentWidget(ui->manageAccountsPage);
 
@@ -65,80 +61,67 @@ AdminDashboard::~AdminDashboard()
     delete ui;
 }
 
-// --- CÁC HÀM CHUYỂN TRANG ---
 void AdminDashboard::handleManageAccountsClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->manageAccountsPage);
     ui->accStackedWidget->setCurrentWidget(ui->accListPage);
     // ------------------------
 
-    // 3. Tải dữ liệu bảng
     loadAccountsTable();
 }
 void AdminDashboard::handleManagePetsClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->managePetsPage);
     ui->petStackedWidget->setCurrentWidget(ui->petListPage);
 
-    // 3. Tải dữ liệu lên bảng ngay lập tức
     loadPetsTable();
 }
 void AdminDashboard::handleManageSpaClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->manageSpaPage);
 
-    // Reset về trang danh sách Spa
     ui->spaStackedWidget->setCurrentWidget(ui->spaListPage);
 
-    // Tải dữ liệu Spa
     loadSpaTable();
 }
 void AdminDashboard::handleHistoryClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->historyPage);
 
-    // Đảm bảo UI đã được tạo
     setupHistoryUI();
 
-    // Tải dữ liệu
     loadHistoryTable("");
 }
 void AdminDashboard::handleStatsClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->statsPage);
     setupStatsUI();
-    // Tự động thống kê lần đầu (All time hoặc theo date mặc định)
     calculateAndShowStats();
 }
 void AdminDashboard::handleProfileClick() {
     ui->pageStackedWidget->setCurrentWidget(ui->profilePage);
     setupProfileUI();
-    loadProfileData(); // Tải dữ liệu hiện tại lên form
+    loadProfileData();
 }
 void AdminDashboard::handleLogoutClick() {
     emit logoutSignal();
     this->close();
 }
-// admindashboard.cpp
 
 #include <QMessageBox>
 
-// --- 1. HÀM TẢI DANH SÁCH TÀI KHOẢN ---
 void AdminDashboard::loadAccountsTable(const QString& search)
 {
     ui->accountsTable->setRowCount(0);
     ui->accountsTable->setColumnCount(5);
-    QStringList headers = {"ID", "Họ tên", "Mật khẩu", "Giới tính", "Vai trò"};
+    QStringList headers = {"ID", "Name", "Password", "Gender", "Role"};
     ui->accountsTable->setHorizontalHeaderLabels(headers);
 
     int row = 0;
     std::string keyword = search.toLower().toStdString();
 
-    // A. Load STAFF trước
     LinkedList<Staff> staffs = m_accountRepo->getAllStaffInfo();
     Node<Staff>* sNode = staffs.getHead();
     while(sNode != nullptr) {
         Staff s = sNode->getData();
 
-        // Tìm kiếm
         string id = s.getId();
         string name = s.getName();
-        // Chuyển thường để so sánh
         string lowerId = id; std::transform(lowerId.begin(), lowerId.end(), lowerId.begin(), ::tolower);
         string lowerName = name; std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
 
@@ -158,12 +141,10 @@ void AdminDashboard::loadAccountsTable(const QString& search)
         sNode = sNode->getNext();
     }
 
-    // B. Load CLIENT sau
     LinkedList<Client> clients = m_accountRepo->getAllClientInfo();
     Node<Client>* cNode = clients.getHead();
     while(cNode != nullptr) {
         Client c = cNode->getData();
-        // (Logic tìm kiếm tương tự như trên...)
         string id = c.getId();
         string name = c.getName();
         string lowerId = id; std::transform(lowerId.begin(), lowerId.end(), lowerId.begin(), ::tolower);
@@ -183,19 +164,17 @@ void AdminDashboard::loadAccountsTable(const QString& search)
     ui->accountsTable->resizeColumnsToContents();
 }
 
-// --- 2. CÁC NÚT CHỨC NĂNG ---
 
 void AdminDashboard::on_accSearchButton_clicked() {
     loadAccountsTable(ui->accSearchInput->text());
 }
 
 void AdminDashboard::on_addStaffButton_clicked() {
-    // Reset form
-    ui->accIdInput->clear(); ui->accIdInput->setReadOnly(false); // Cho phép nhập ID mới
+    ui->accIdInput->clear(); ui->accIdInput->setReadOnly(false);
     ui->accNameInput->clear();
     ui->accPassInput->clear();
     ui->maleRadio->setChecked(true);
-    ui->accSalaryInput->clear(); ui->accSalaryInput->setEnabled(true); // Staff có lương
+    ui->accSalaryInput->clear(); ui->accSalaryInput->setEnabled(true);
 
     ui->accStackedWidget->setCurrentWidget(ui->accFormPage);
 }
@@ -203,34 +182,32 @@ void AdminDashboard::on_addStaffButton_clicked() {
 void AdminDashboard::on_viewAccButton_clicked() {
     int row = ui->accountsTable->currentRow();
     if (row < 0) {
-        QMessageBox::warning(this, "Chưa chọn", "Vui lòng chọn một tài khoản để xem.");
+        QMessageBox::warning(this, "Not selected yet", "Please select an account to view.");
         return;
     }
 
-    // Lấy ID từ bảng
     std::string id = ui->accountsTable->item(row, 0)->text().toStdString();
     std::string role = ui->accountsTable->item(row, 4)->text().toStdString();
 
-    // Tải thông tin chi tiết lên Form
     if (role == "Staff") {
         Staff s = m_accountRepo->getStaffInfo(id);
         ui->accIdInput->setText(QString::fromStdString(s.getId()));
         ui->accNameInput->setText(QString::fromStdString(s.getName()));
-        ui->accPassInput->setText(QString::fromStdString(s.getPassword())); // Hiện pass thật
+        ui->accPassInput->setText(QString::fromStdString(s.getPassword()));
         if(s.getGender() == "Male") ui->maleRadio->setChecked(true); else ui->femaleRadio->setChecked(true);
         ui->accSalaryInput->setText(QString::number(s.getSalary()));
         ui->accSalaryInput->setEnabled(true);
-    } else { // Client
+    } else {
         Client c = m_accountRepo->getClientInfo(id);
         ui->accIdInput->setText(QString::fromStdString(c.getId()));
         ui->accNameInput->setText(QString::fromStdString(c.getName()));
         ui->accPassInput->setText(QString::fromStdString(c.getPassword()));
         if(c.getGender() == "Male") ui->maleRadio->setChecked(true); else ui->femaleRadio->setChecked(true);
         ui->accSalaryInput->setText("");
-        ui->accSalaryInput->setEnabled(false); // Client không có lương
+        ui->accSalaryInput->setEnabled(false);
     }
 
-    ui->accIdInput->setReadOnly(true); // Không cho sửa ID khi Edit
+    ui->accIdInput->setReadOnly(true);
     ui->accStackedWidget->setCurrentWidget(ui->accFormPage);
 }
 
@@ -242,34 +219,33 @@ void AdminDashboard::on_deleteAccButton_clicked() {
     std::string name = ui->accountsTable->item(row, 1)->text().toStdString();
 
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Xác nhận xóa",
-                                  QString("Bạn có chắc muốn xóa tài khoản: %1 (%2)?\nDữ liệu sẽ được sao lưu vào folder backup.").arg(QString::fromStdString(name), QString::fromStdString(id)),
+    reply = QMessageBox::question(this, "Confirm deletion",
+                                  QString("Are you sure you want to delete account: %1 (%2)?\nData will be backed up to the backup folder.").arg(QString::fromStdString(name), QString::fromStdString(id)),
                                   QMessageBox::Yes|QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
-        m_accountRepo->deleteAccount(id); // Hàm này giờ đã có Backup!
-        loadAccountsTable(); // Tải lại bảng
-        QMessageBox::information(this, "Thành công", "Đã xóa tài khoản thành công.");
+        m_accountRepo->deleteAccount(id);
+        loadAccountsTable();
+        QMessageBox::information(this, "Success", "Account deleted successfully.");
     }
 }
 
 void AdminDashboard::on_saveAccButton_clicked() {
-    // Lấy dữ liệu
     std::string id = ui->accIdInput->text().toStdString();
     std::string name = ui->accNameInput->text().toStdString();
     std::string pass = ui->accPassInput->text().toStdString();
     std::string gender = ui->maleRadio->isChecked() ? "Male" : "Female";
 
     if (id.empty() || name.empty() || pass.empty()) {
-        QMessageBox::warning(this, "Thiếu thông tin", "Vui lòng nhập đủ ID, Tên và Mật khẩu.");
+        QMessageBox::warning(this, "Lack of information", "Please enter full ID, Name and Password.");
         return;
     }
 
-    //5 ký tự -> Staff, 10 ký tự -> Client
+
     if (id.length() == 5) {
         long salary = ui->accSalaryInput->text().toLong();
         Staff s(id, name, pass, gender, salary);
-        m_accountRepo->setStaffInfo(s); // Thêm mới hoặc Cập nhật
+        m_accountRepo->setStaffInfo(s);
     }
     else if (id.length() == 10) {
         // Client
@@ -278,12 +254,12 @@ void AdminDashboard::on_saveAccButton_clicked() {
         m_accountRepo->setClientInfo(newC);
     }
     else {
-        QMessageBox::warning(this, "Sai ID", "ID Staff phải 5 ký tự, Client phải 10 ký tự.");
+        QMessageBox::warning(this, "Wrong ID", "Staff ID must be 5 characters, Client must be 10 characters.");
         return;
     }
 
-    QMessageBox::information(this, "Thành công", "Đã lưu thông tin tài khoản.");
-    ui->accStackedWidget->setCurrentWidget(ui->accListPage); // Quay về danh sách
+    QMessageBox::information(this, "Success", "Account information saved.");
+    ui->accStackedWidget->setCurrentWidget(ui->accListPage);
     loadAccountsTable();
 }
 
@@ -291,14 +267,12 @@ void AdminDashboard::on_cancelAccButton_clicked() {
     ui->accStackedWidget->setCurrentWidget(ui->accListPage);
 }
 void AdminDashboard::backupData(const QString& folderName, const QString& id, const QString& content) {
-    // Tạo đường dẫn: BackupData/Pets hoặc BackupData/Spa
     QString path = "BackupData/" + folderName;
     QDir dir;
     if (!dir.exists(path)) {
         dir.mkpath(path);
     }
 
-    // Tạo tên file có timestamp để không bị trùng
     QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
     QString fileName = path + "/Deleted_" + id + "_" + timestamp + ".txt";
 
@@ -316,7 +290,6 @@ void AdminDashboard::backupData(const QString& folderName, const QString& id, co
 
 void AdminDashboard::loadPetsTable(const QString& search) {
     ui->petsTable->setRowCount(0);
-    // Cột 7 là cột ẩn để lưu loại "dog" hay "cat" giúp việc Sửa/Xóa dễ dàng
     ui->petsTable->setColumnCount(8);
     QStringList headers = {"ID", "Name", "Type", "Breed", "Price (VND)", "Status", "Characteristic", "HiddenType"};
     ui->petsTable->setHorizontalHeaderLabels(headers);
@@ -325,7 +298,6 @@ void AdminDashboard::loadPetsTable(const QString& search) {
     int row = 0;
     std::string keyword = search.toLower().toStdString();
 
-    // Load Dogs
     LinkedList<Dog> dogs = m_petRepo->searchDog("all", keyword);
     Node<Dog>* dNode = dogs.getHead();
     while(dNode != nullptr) {
@@ -347,7 +319,6 @@ void AdminDashboard::loadPetsTable(const QString& search) {
         else statusItem->setForeground(Qt::red);
 
         ui->petsTable->setItem(row, 5, statusItem);
-        // ---------------------------
 
         ui->petsTable->setItem(row, 6, new QTableWidgetItem("Energy: " + QString::number(p.getEnergyLevel()) + "/10"));
         ui->petsTable->setItem(row, 7, new QTableWidgetItem("dog")); // Đánh dấu là chó
@@ -393,7 +364,6 @@ void AdminDashboard::on_petSearchButton_clicked() {
 
 
 void AdminDashboard::on_dogRadio_toggled(bool checked) {
-    // Nếu chọn Dog -> Hiện Energy, Ẩn Fur. Ngược lại cho Cat.
     ui->dogEnergyInput->setVisible(checked);
     ui->catFurInput->setVisible(!checked);
 
@@ -408,10 +378,10 @@ void AdminDashboard::on_dogRadio_toggled(bool checked) {
 
 
 void AdminDashboard::on_addPetButton_clicked() {
-    m_isEditMode = false; // Chế độ thêm mới
+    m_isEditMode = false;
     ui->petStackedWidget->setCurrentWidget(ui->petFormPage);
 
-    // Reset Form
+
     ui->petNameInput->clear();
     ui->petBreedInput->clear();
     ui->petAgeInput->setValue(1);
@@ -420,15 +390,13 @@ void AdminDashboard::on_addPetButton_clicked() {
     ui->dogEnergyInput->setValue(5);
     ui->catFurInput->clear();
 
-    // Cho phép chọn loại thú cưng
     ui->dogRadio->setEnabled(true);
     ui->catRadio->setEnabled(true);
 
-    // Trigger logic sinh ID
     if (ui->dogRadio->isChecked()) {
         on_dogRadio_toggled(true);
     } else {
-        ui->dogRadio->setChecked(true); // Mặc định chọn Dog
+        ui->dogRadio->setChecked(true);
     }
 }
 
@@ -436,22 +404,20 @@ void AdminDashboard::on_addPetButton_clicked() {
 void AdminDashboard::on_editPetButton_clicked() {
     int row = ui->petsTable->currentRow();
     if (row < 0) {
-        QMessageBox::warning(this, "Chưa chọn", "Vui lòng chọn thú cưng cần sửa.");
+        QMessageBox::warning(this, "Not selected yet", "Please select the pet you want to edit.");
         return;
     }
 
-    m_isEditMode = true; // Chế độ sửa
+    m_isEditMode = true;
     QString id = ui->petsTable->item(row, 0)->text();
-    QString type = ui->petsTable->item(row, 7)->text(); // Lấy loại từ cột ẩn
+    QString type = ui->petsTable->item(row, 7)->text();
     m_editingId = id.toStdString();
 
     ui->petStackedWidget->setCurrentWidget(ui->petFormPage);
 
-    // Không cho đổi loại thú cưng khi đang sửa
     ui->dogRadio->setEnabled(false);
     ui->catRadio->setEnabled(false);
 
-    // Đổ dữ liệu cũ vào Form
     if (type == "dog") {
         ui->dogRadio->setChecked(true);
         Dog d = m_petRepo->getDogInfo(m_editingId);
@@ -471,14 +437,14 @@ void AdminDashboard::on_editPetButton_clicked() {
         ui->petDescInput->setText(QString::fromStdString(c.getDescription()));
         ui->catFurInput->setText(QString::fromStdString(c.getFurLength()));
     }
-    ui->petIdInput->setText(id); // Hiển thị ID nhưng ReadOnly
+    ui->petIdInput->setText(id);
 }
 
 
 void AdminDashboard::on_savePetButton_clicked() {
     // Validate dữ liệu
     if (ui->petNameInput->text().isEmpty() || ui->petPriceInput->text().isEmpty()) {
-        QMessageBox::warning(this, "Thiếu thông tin", "Vui lòng nhập Tên và Giá.");
+        QMessageBox::warning(this, "Lack of information", "Please enter Name and Price.");
         return;
     }
 
@@ -495,23 +461,22 @@ void AdminDashboard::on_savePetButton_clicked() {
     if (ui->dogRadio->isChecked()) {
         int energy = ui->dogEnergyInput->value();
         Dog d(id, name, breed, age, price, status, energy, desc);
-        m_petRepo->setDogInfo(d); // Repo sẽ tự xử lý ghi đè nếu ID trùng
+        m_petRepo->setDogInfo(d);
     } else {
         std::string fur = ui->catFurInput->text().toStdString();
         Cat c(id, name, breed, age, price, status, fur, desc);
         m_petRepo->setCatInfo(c);
     }
 
-    QMessageBox::information(this, "Thành công", "Đã lưu thông tin thú cưng.");
-    ui->petStackedWidget->setCurrentWidget(ui->petListPage); // Quay về bảng
-    loadPetsTable(); // Tải lại bảng
+    QMessageBox::information(this, "Success", "Pet information saved.");
+    ui->petStackedWidget->setCurrentWidget(ui->petListPage);
+    loadPetsTable();
 }
 
-// 7. Nút Xóa (DELETE - Có Backup)
 void AdminDashboard::on_deletePetButton_clicked() {
     int row = ui->petsTable->currentRow();
     if (row < 0) {
-        QMessageBox::warning(this, "Chưa chọn", "Vui lòng chọn thú cưng để xóa.");
+        QMessageBox::warning(this, "Not selected yet", "Please select a pet to delete.");
         return;
     }
 
@@ -520,8 +485,8 @@ void AdminDashboard::on_deletePetButton_clicked() {
     QString type = ui->petsTable->item(row, 7)->text();
 
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Xác nhận xóa",
-                                  "Bạn có chắc muốn xóa: " + name + " (" + id + ")?\nDữ liệu sẽ được sao lưu.",
+    reply = QMessageBox::question(this, "Confirm deletion",
+                                  "Are you sure you want to delete: " + name + " (" + id + ")?\nData will be backed up.",
                                   QMessageBox::Yes|QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
@@ -548,11 +513,11 @@ void AdminDashboard::on_deletePetButton_clicked() {
         backupData("Pets", id, contentBackup);
 
         // 3. Xóa trong Repo
-        if (type == "dog") m_petRepo->deletePet(id.toStdString()); // Hàm deletePet dùng chung ID
+        if (type == "dog") m_petRepo->deletePet(id.toStdString());
         else m_petRepo->deletePet(id.toStdString());
 
         loadPetsTable();
-        QMessageBox::information(this, "Đã xóa", "Đã xóa và sao lưu dữ liệu vào thư mục BackupData/Pets.");
+        QMessageBox::information(this, "Đã xóa", "Deleted and backed up data to folder BackupData/Pets.");
     }
 }
 
@@ -603,7 +568,7 @@ void AdminDashboard::on_addServiceButton_clicked() {
     ui->spaStackedWidget->setCurrentWidget(ui->spaFormPage);
     // Reset
     ui->spaIdInput->clear();
-    ui->spaIdInput->setReadOnly(false); // Cho nhập ID mới
+    ui->spaIdInput->setReadOnly(false);
     ui->spaNameInput->clear();
     ui->spaDescInput->clear();
     ui->spaPriceInput->clear();
@@ -614,7 +579,7 @@ void AdminDashboard::on_addServiceButton_clicked() {
 void AdminDashboard::on_editServiceButton_clicked() {
     int row = ui->spaTable->currentRow();
     if (row < 0) {
-        QMessageBox::warning(this, "Chưa chọn", "Vui lòng chọn dịch vụ để sửa.");
+        QMessageBox::warning(this, "Not selected yet", "Please select a service to edit.");
         return;
     }
     QString id = ui->spaTable->item(row, 0)->text();
@@ -623,7 +588,7 @@ void AdminDashboard::on_editServiceButton_clicked() {
 
     ui->spaStackedWidget->setCurrentWidget(ui->spaFormPage);
     ui->spaIdInput->setText(QString::fromStdString(s.getId()));
-    ui->spaIdInput->setReadOnly(true); // Không cho sửa ID
+    ui->spaIdInput->setReadOnly(true);
     ui->spaNameInput->setText(QString::fromStdString(s.getName()));
     ui->spaDescInput->setText(QString::fromStdString(s.getDescription()));
     ui->spaPriceInput->setText(QString::number(s.getPrice()));
@@ -640,22 +605,21 @@ void AdminDashboard::on_saveServiceButton_clicked() {
     int duration = ui->spaDurationInput->value();
 
     if (id.empty() || name.empty()) {
-        QMessageBox::warning(this, "Thiếu thông tin", "Vui lòng nhập Mã và Tên dịch vụ.");
+        QMessageBox::warning(this, "Lack of information", "Please enter ID and Name.");
         return;
     }
 
 
     if (!m_isEditMode && m_serviceRepo->isValidServiceId(id)) {
-        QMessageBox::warning(this, "Trùng mã",
-                             "Mã dịch vụ '" + QString::fromStdString(id) + "' đã tồn tại!\nVui lòng chọn mã khác.");
-        return; // Dừng lại, không lưu đè
+        QMessageBox::warning(this, "Duplicate ID",
+                             "ID '" + QString::fromStdString(id) + "' already exists!\nPlease choose another ID.");
+        return;
     }
-    // ----------------------------------
 
     Service s(id, name, desc, price, duration);
-    m_serviceRepo->setServiceInfo(s); // Hàm này giờ đã cập nhật RAM -> Bảng sẽ hiện ngay
+    m_serviceRepo->setServiceInfo(s);
 
-    QMessageBox::information(this, "Thành công", "Đã lưu dịch vụ spa.");
+    QMessageBox::information(this, "Success", "Spa service saved.");
     ui->spaStackedWidget->setCurrentWidget(ui->spaListPage);
     loadSpaTable(); // Tải lại bảng từ RAM (đã có dữ liệu mới)
 }
@@ -666,7 +630,7 @@ void AdminDashboard::on_deleteServiceButton_clicked() {
     if (row < 0) return;
     QString id = ui->spaTable->item(row, 0)->text();
 
-    if (QMessageBox::question(this, "Xóa", "Xóa dịch vụ " + id + "?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
+    if (QMessageBox::question(this, "Delete", "Delete service " + id + "?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
         // Backup
         Service s = m_serviceRepo->getServiceInfo(id.toStdString());
         QString content = QString("Service: %1\nPrice: %2\nDesc: %3")
@@ -686,41 +650,36 @@ void AdminDashboard::on_cancelServiceButton_clicked() {
     ui->spaStackedWidget->setCurrentWidget(ui->spaListPage);
 }
 void AdminDashboard::setupHistoryUI() {
-    if (m_isHistoryUiSetup) return; // Chỉ chạy 1 lần
+    if (m_isHistoryUiSetup) return;
 
     if (ui->historyPage->layout() == nullptr) {
         QVBoxLayout* mainLayout = new QVBoxLayout(ui->historyPage);
 
-        // A. Tạo thanh Toolbar (Ô tìm kiếm + Nút)
         QHBoxLayout* toolbarLayout = new QHBoxLayout();
 
         QLineEdit* searchInput = new QLineEdit(ui->historyPage);
-        searchInput->setObjectName("historySearchInput"); // Đặt tên để tìm lại sau này
+        searchInput->setObjectName("historySearchInput");
         searchInput->setPlaceholderText("Search by ID, name or date (dd/mm/yyyy)...");
 
         QPushButton* searchBtn = new QPushButton("Search", ui->historyPage);
         searchBtn->setObjectName("historySearchButton");
         searchBtn->setCursor(Qt::PointingHandCursor);
-        // Style cho nút đẹp hơn chút
         searchBtn->setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; padding: 5px 15px; border-radius: 4px;");
 
         toolbarLayout->addWidget(searchInput);
         toolbarLayout->addWidget(searchBtn);
 
-        // B. Tạo Bảng
         QTableWidget* table = new QTableWidget(ui->historyPage);
         table->setObjectName("historyTable");
         table->setSelectionBehavior(QAbstractItemView::SelectRows);
-        table->setEditTriggers(QAbstractItemView::NoEditTriggers); // Không cho sửa
-        table->setAlternatingRowColors(true); // Màu dòng xen kẽ
+        table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        table->setAlternatingRowColors(true);
         table->verticalHeader()->setVisible(false);
 
         mainLayout->addLayout(toolbarLayout);
         mainLayout->addWidget(table);
 
-        // Kết nối sự kiện nút Tìm kiếm
         connect(searchBtn, &QPushButton::clicked, this, &AdminDashboard::on_historySearchButton_clicked);
-        // Tìm kiếm khi nhấn Enter
         connect(searchInput, &QLineEdit::returnPressed, this, &AdminDashboard::on_historySearchButton_clicked);
     }
 
@@ -732,19 +691,19 @@ void AdminDashboard::setupHistoryUI() {
 
 
 void AdminDashboard::loadHistoryTable(const QString& search) {
-    // Tìm widget table theo tên (vì ta tạo bằng code hoặc ui đều đặt tên này)
+
     QTableWidget* table = ui->historyPage->findChild<QTableWidget*>("historyTable");
     if (!table) return;
 
     table->setRowCount(0);
-    table->setColumnCount(6); // ID, Khách, Ngày, Giờ, Tổng tiền, Xem
+    table->setColumnCount(6);
     QStringList headers = {"ID", "Customer", "Date", "Time", "Total (VND)", "Description"};
     table->setHorizontalHeaderLabels(headers);
 
-    // Căn chỉnh cột cho đẹp
+
     table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // Tên khách giãn hết cỡ
 
-    // Lấy dữ liệu từ Repo
+
     LinkedList<Bill> bills = m_billRepo->getAllBills();
     Node<Bill>* node = bills.getHead();
     int row = 0;
@@ -753,12 +712,10 @@ void AdminDashboard::loadHistoryTable(const QString& search) {
     while(node != nullptr) {
         Bill b = node->getData();
 
-        // Chuẩn bị dữ liệu để so sánh tìm kiếm
         std::string id = b.getBillId(); std::transform(id.begin(), id.end(), id.begin(), ::tolower);
         std::string name = b.getClientName(); std::transform(name.begin(), name.end(), name.begin(), ::tolower);
         std::string date = b.getDate();
 
-        // Logic lọc: Nếu từ khóa rỗng HOẶC trùng ID/Tên/Ngày
         if (keyword.empty() ||
             id.find(keyword) != std::string::npos ||
             name.find(keyword) != std::string::npos ||
@@ -771,14 +728,10 @@ void AdminDashboard::loadHistoryTable(const QString& search) {
             table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(b.getTime())));
             table->setItem(row, 4, new QTableWidgetItem(QString::number(b.getTotalAmount())));
 
-            // TẠO NÚT "XEM" TRONG BẢNG
             QPushButton* viewBtn = new QPushButton("View");
             viewBtn->setCursor(Qt::PointingHandCursor);
-            // Style nút nhỏ gọn
             viewBtn->setStyleSheet("background-color: #4CAF50; color: white; border-radius: 3px; padding: 2px 10px;");
 
-            // Gắn hành động cho nút này
-            // Dùng Lambda function để bắt giá trị ID của dòng hiện tại
             std::string billIdStr = b.getBillId();
             connect(viewBtn, &QPushButton::clicked, [this, billIdStr]() {
                 showBillDetail(billIdStr);
@@ -791,7 +744,6 @@ void AdminDashboard::loadHistoryTable(const QString& search) {
     }
 }
 
-// --- 4. SLOT NÚT TÌM KIẾM ---
 void AdminDashboard::on_historySearchButton_clicked() {
     QLineEdit* input = ui->historyPage->findChild<QLineEdit*>("historySearchInput");
     if (input) {
@@ -799,24 +751,20 @@ void AdminDashboard::on_historySearchButton_clicked() {
     }
 }
 
-// --- 5. HÀM HIỂN THỊ CHI TIẾT (ĐỌC FILE BILLxxx.txt) ---
 void AdminDashboard::showBillDetail(const std::string& billId) {
-    // Đường dẫn file
     QString filePath = "data/bills/" + QString::fromStdString(billId) + ".txt";
 
-    // Nếu thư mục bills nằm cùng cấp với exe thì dùng:
     if (!QFile::exists(filePath)) {
-        filePath = QString::fromStdString(billId) + ".txt"; // Thử tìm ở thư mục gốc
+        filePath = QString::fromStdString(billId) + ".txt";
     }
 
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::warning(this, "Lỗi", "Không tìm thấy file chi tiết cho hóa đơn: " + QString::fromStdString(billId));
+        QMessageBox::warning(this, "Error", "No detail file found for invoice: " + QString::fromStdString(billId));
         return;
     }
 
     QTextStream in(&file);
-// Set encoding UTF-8 để đọc tiếng Việt không lỗi
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     in.setEncoding(QStringConverter::Utf8);
 #else
@@ -829,7 +777,6 @@ void AdminDashboard::showBillDetail(const std::string& billId) {
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("Invoice detail: " + QString::fromStdString(billId));
     msgBox.setText(content);
-    // Chỉnh font chữ dạng Monospace (như Courier) để các cột thẳng hàng
     msgBox.setStyleSheet("QLabel{min-width: 400px; font-family: 'Courier New'; font-size: 12px;}");
     msgBox.exec();
 }
@@ -841,11 +788,10 @@ void AdminDashboard::setupStatsUI() {
         QVBoxLayout* mainLayout = new QVBoxLayout(ui->statsPage);
         mainLayout->setSpacing(20);
 
-        // --- A. HEADER & DATE FILTER ---
         QHBoxLayout* filterLayout = new QHBoxLayout();
 
         QLabel* lblStart = new QLabel("From:");
-        QDateEdit* dateStart = new QDateEdit(QDate::currentDate().addMonths(-1)); // Mặc định lùi 1 tháng
+        QDateEdit* dateStart = new QDateEdit(QDate::currentDate().addMonths(-1));
         dateStart->setCalendarPopup(true);
         dateStart->setObjectName("statDateStart");
 
@@ -867,16 +813,13 @@ void AdminDashboard::setupStatsUI() {
         filterLayout->addStretch();
         filterLayout->addWidget(btnFilter);
 
-        // --- B. OVERVIEW CARDS (Doanh thu tổng) ---
         QHBoxLayout* cardsLayout = new QHBoxLayout();
 
-        // Card Dog
         QLabel* lblDogRev = new QLabel("DOG revenue:\n0 VND");
         lblDogRev->setObjectName("lblDogRev");
         lblDogRev->setStyleSheet("background-color: #E3F2FD; color: #1565C0; font-weight: bold; font-size: 16px; padding: 20px; border-radius: 10px; border: 1px solid #BBDEFB;");
         lblDogRev->setAlignment(Qt::AlignCenter);
 
-        // Card Cat
         QLabel* lblCatRev = new QLabel("CAT revenue:\n0 VND");
         lblCatRev->setObjectName("lblCatRev");
         lblCatRev->setStyleSheet("background-color: #FCE4EC; color: #C2185B; font-weight: bold; font-size: 16px; padding: 20px; border-radius: 10px; border: 1px solid #F8BBD0;");
@@ -885,10 +828,8 @@ void AdminDashboard::setupStatsUI() {
         cardsLayout->addWidget(lblDogRev);
         cardsLayout->addWidget(lblCatRev);
 
-        // --- C. TABLES (Top Breeds & Top Customers) ---
         QHBoxLayout* tablesLayout = new QHBoxLayout();
 
-        // Bảng 1: Top Hot Breeds
         QGroupBox* grpBreed = new QGroupBox("TOP BEST-SELLING PET BREEDS");
         grpBreed->setStyleSheet("QGroupBox { font-weight: bold; color: #333; }");
         QVBoxLayout* breedLayout = new QVBoxLayout(grpBreed);
@@ -899,7 +840,6 @@ void AdminDashboard::setupStatsUI() {
         tblBreed->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
         breedLayout->addWidget(tblBreed);
 
-        // Bảng 2: Top Customers
         QGroupBox* grpCust = new QGroupBox("TOP CUSTOMERS");
         grpCust->setStyleSheet("QGroupBox { font-weight: bold; color: #333; }");
         QVBoxLayout* custLayout = new QVBoxLayout(grpCust);
@@ -913,32 +853,26 @@ void AdminDashboard::setupStatsUI() {
         tablesLayout->addWidget(grpBreed);
         tablesLayout->addWidget(grpCust);
 
-        // Add all to main
         mainLayout->addLayout(filterLayout);
         mainLayout->addLayout(cardsLayout);
         mainLayout->addLayout(tablesLayout);
 
-        // Connect
         connect(btnFilter, &QPushButton::clicked, this, &AdminDashboard::on_filterStatsButton_clicked);
     }
     m_isStatsUiSetup = true;
 }
 
-// 2. XỬ LÝ KHI VÀO TRANG STATS
 
 
-// 3. SLOT NÚT LỌC
 void AdminDashboard::on_filterStatsButton_clicked() {
     calculateAndShowStats();
 }
 
-// 4. HÀM PARSE FILE BILL ĐỂ LẤY CHI TIẾT (Core Logic)
 void AdminDashboard::parseBillForStats(const std::string& billId,
                                        long long& dogRev, long long& catRev,
                                        QMap<QString, BreedStat>& breeds,
                                        QMap<QString, CustomerStat>& customers)
 {
-    // Tìm file chi tiết
     QString path = "data/bills/" + QString::fromStdString(billId) + ".txt";
     if (!QFile::exists(path)) path = QString::fromStdString(billId) + ".txt"; // Fallback
 
@@ -955,20 +889,13 @@ void AdminDashboard::parseBillForStats(const std::string& billId,
     while (!in.atEnd()) {
         QString line = in.readLine().trimmed();
 
-        // Tìm dòng chứa ID Pet (VD: "ID: d001")
         if (line.startsWith("ID:")) {
             QString petId = line.mid(3).trimmed();
 
-            // Phân loại
             if (petId.startsWith("d")) {
-                // Tìm thông tin Dog trong Repo để lấy Breed & Price
                 Dog d = m_petRepo->getDogInfo(petId.toStdString());
-                // Lưu ý: Nếu pet đã bị xóa khỏi file Dog.txt (Admin xóa), getDogInfo trả về rỗng.
-                // Nếu pet chỉ bị set sold (status 0), nó vẫn trả về data.
 
                 long long price = d.getPrice();
-                // Nếu không tìm thấy trong Repo (đã xóa vĩnh viễn), thử tìm giá trong bill (phức tạp hơn)
-                // Ở đây giả định tìm thấy hoặc giá = 0
 
                 dogRev += price;
 
@@ -996,9 +923,7 @@ void AdminDashboard::parseBillForStats(const std::string& billId,
     file.close();
 }
 
-// 5. HÀM TÍNH TOÁN TỔNG HỢP
 void AdminDashboard::calculateAndShowStats() {
-    // Lấy UI elements
     QDateEdit* dtStart = ui->statsPage->findChild<QDateEdit*>("statDateStart");
     QDateEdit* dtEnd = ui->statsPage->findChild<QDateEdit*>("statDateEnd");
     QLabel* lbDog = ui->statsPage->findChild<QLabel*>("lblDogRev");
@@ -1011,59 +936,49 @@ void AdminDashboard::calculateAndShowStats() {
     QDate start = dtStart->date();
     QDate end = dtEnd->date();
 
-    // Reset biến đếm
     long long totalDogRevenue = 0;
     long long totalCatRevenue = 0;
     QMap<QString, BreedStat> breedMap;
     QMap<QString, CustomerStat> customerMap;
 
-    // Duyệt tất cả hóa đơn tóm tắt
     LinkedList<Bill> bills = m_billRepo->getAllBills();
     Node<Bill>* node = bills.getHead();
 
     while(node != nullptr) {
         Bill b = node->getData();
 
-        // Parse ngày tháng từ bill (dd/MM/yyyy)
         QDate billDate = QDate::fromString(QString::fromStdString(b.getDate()), "dd/MM/yyyy");
 
-        // Kiểm tra khoảng thời gian
         if (billDate.isValid() && billDate >= start && billDate <= end) {
 
-            // 1. Thống kê Khách hàng
             QString cId = QString::fromStdString(b.getClientId());
-            if (cId != "0000000000") { // Bỏ qua khách vãng lai
+            if (cId != "0000000000") {
                 customerMap[cId].id = cId;
                 customerMap[cId].name = QString::fromStdString(b.getClientName());
                 customerMap[cId].buyCount++;
                 customerMap[cId].totalSpent += b.getTotalAmount();
             }
 
-            // 2. Thống kê Pet (Cần đọc file chi tiết)
+
             parseBillForStats(b.getBillId(), totalDogRevenue, totalCatRevenue, breedMap, customerMap);
         }
 
         node = node->getNext();
     }
 
-    // --- HIỂN THỊ ---
 
-    // A. Overview Labels
-    // Format tiền tệ (thêm dấu chấm)
     QLocale locale(QLocale::Vietnamese, QLocale::Vietnam);
     lbDog->setText("DOG revenue:\n" + locale.toString((qlonglong)totalDogRevenue) + " VND");
     lbCat->setText("CAT revenue:\n" + locale.toString((qlonglong)totalCatRevenue) + " VND");
 
-    // B. Top Breeds Table
     QList<BreedStat> breedList = breedMap.values();
-    // Sắp xếp giảm dần theo số lượng bán
     std::sort(breedList.begin(), breedList.end(), [](const BreedStat& a, const BreedStat& b) {
         return a.quantity > b.quantity;
     });
 
     tbBreed->setRowCount(0);
     for(const auto& item : breedList) {
-        if (item.breedName == "Unknown") continue; // Bỏ qua unknown
+        if (item.breedName == "Unknown") continue;
         int r = tbBreed->rowCount();
         tbBreed->insertRow(r);
         tbBreed->setItem(r, 0, new QTableWidgetItem(item.breedName));
@@ -1072,9 +987,8 @@ void AdminDashboard::calculateAndShowStats() {
         tbBreed->setItem(r, 3, new QTableWidgetItem(locale.toString((qlonglong)item.revenue)));
     }
 
-    // C. Top Customer Table
     QList<CustomerStat> custList = customerMap.values();
-    // Sắp xếp giảm dần theo tổng tiền chi
+
     std::sort(custList.begin(), custList.end(), [](const CustomerStat& a, const CustomerStat& b) {
         return a.totalSpent > b.totalSpent;
     });
@@ -1098,7 +1012,6 @@ void AdminDashboard::setupProfileUI() {
         mainLayout->setSpacing(20);
         mainLayout->setAlignment(Qt::AlignTop);
 
-        // --- A. HEADER ---
         QVBoxLayout* headerLayout = new QVBoxLayout();
         QLabel* avatar = new QLabel("👤");
         avatar->setStyleSheet("font-size: 60px; color: #555;");
@@ -1111,7 +1024,6 @@ void AdminDashboard::setupProfileUI() {
         headerLayout->addWidget(avatar);
         headerLayout->addWidget(title);
 
-        // --- B. FORM NHẬP LIỆU ---
         QGroupBox* formGroup = new QGroupBox("Edit informations");
         formGroup->setStyleSheet("QGroupBox { font-weight: bold; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; padding: 20px; }");
 
@@ -1134,14 +1046,12 @@ void AdminDashboard::setupProfileUI() {
         formLayout->addRow("Password:", m_profilePassInput);
         formLayout->addRow("Role:", m_profileRoleLabel);
 
-        // --- C. BUTTONS (Đã xóa nút Đăng xuất) ---
         QHBoxLayout* btnLayout = new QHBoxLayout();
 
         QPushButton* btnSave = new QPushButton("SAVE");
         btnSave->setCursor(Qt::PointingHandCursor);
         btnSave->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 10px 20px; border-radius: 5px;");
 
-        // Chỉ còn nút Save, căn giữa hoặc phải tùy ý (ở đây tôi để căn phải)
         btnLayout->addStretch();
         btnLayout->addWidget(btnSave);
 
@@ -1151,16 +1061,13 @@ void AdminDashboard::setupProfileUI() {
         mainLayout->addLayout(btnLayout);
         mainLayout->addStretch();
 
-        // Connect
         connect(btnSave, &QPushButton::clicked, this, &AdminDashboard::on_saveProfileButton_clicked);
     }
     m_isProfileUiSetup = true;
 }
 
-// 2. LOGIC KHI VÀO TRANG PROFILE
 
 
-// 3. TẢI DỮ LIỆU TỪ OBJECT ADMIN LÊN FORM
 void AdminDashboard::loadProfileData() {
     if (m_currentAdmin && m_profileNameInput) {
         m_profileNameInput->setText(QString::fromStdString(m_currentAdmin->getName()));
@@ -1174,16 +1081,14 @@ void AdminDashboard::on_saveProfileButton_clicked() {
     QString newPass = m_profilePassInput->text();
 
     if (newName.isEmpty() || newPass.isEmpty()) {
-        QMessageBox::warning(this, "Lỗi", "Tên và Mật khẩu không được để trống.");
+        QMessageBox::warning(this, "Error", "Name and Password cannot be blank.");
         return;
     }
 
-    // 1. Cập nhật Object Admin trong bộ nhớ
     m_currentAdmin->setName(newName.toStdString());
     m_currentAdmin->setPassword(newPass.toStdString());
 
-    // 2. Cập nhật giao diện Sidebar ngay lập tức
     ui->userNameLabel->setText(newName);
 
-    QMessageBox::information(this, "Thành công", "Thông tin quản trị viên đã được cập nhật!\n(Lưu ý: Cần implement hàm ghi file Admin nếu muốn lưu vĩnh viễn)");
+    QMessageBox::information(this, "Success", "Admin information has been updated!");
 }

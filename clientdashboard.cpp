@@ -104,13 +104,12 @@ ClientDashboard::ClientDashboard(Client* client,
     ui->spaTableWidget->setColumnWidth(5, 100);
 
     handlePetsButtonClick();
-    ui->bookingDateEdit->setDisplayFormat("d/M/yyyy"); // Định dạng d/m/yyyy
-    ui->bookingDateEdit->setDate(QDate::currentDate()); // Đặt mặc định la hôm nay
-    ui->bookingDateEdit->setCalendarPopup(true); //Cho phép bung lịch ra
+    ui->bookingDateEdit->setDisplayFormat("d/M/yyyy");
+    ui->bookingDateEdit->setDate(QDate::currentDate());
+    ui->bookingDateEdit->setCalendarPopup(true);
 
-    // 2. Cấu hình Ô Giờ (bookingTimeEdit)
-    ui->bookingTimeEdit->setDisplayFormat("HH:mm"); // Định dạng 24h
-    ui->bookingTimeEdit->setTime(QTime::currentTime()); // Đặt mặc định là Giờ hiện tại
+    ui->bookingTimeEdit->setDisplayFormat("HH:mm");
+    ui->bookingTimeEdit->setTime(QTime::currentTime());
 }
 
 ClientDashboard::~ClientDashboard()
@@ -130,7 +129,7 @@ void ClientDashboard::updatePetsTable()
     if (m_currentPetTypeFilter == "Dog")
     {
 
-        QStringList headers = {"Chọn", "ID", "Tên", "Giống", "Tuổi", "Giá (VND)", "Năng lượng", "Miêu tả"};
+        QStringList headers = {"Choose", "ID", "Name", "Breed", "Age", "Price (VND)", "Energy level", "Description"};
         ui->petsTableWidget->setHorizontalHeaderLabels(headers);
 
 
@@ -169,7 +168,7 @@ void ClientDashboard::updatePetsTable()
     else
     {
 
-        QStringList headers = {"Chọn", "ID", "Tên", "Giống", "Tuổi", "Giá (VND)", "Độ dài lông", "Miêu tả"};
+        QStringList headers = {"Choose", "ID", "Name", "Breed", "Age", "Price (VND)", "Fur lenght", "Description"};
         ui->petsTableWidget->setHorizontalHeaderLabels(headers);
 
 
@@ -236,7 +235,6 @@ void ClientDashboard::handleBookingsButtonClick()
 }
 void ClientDashboard::handleCartButtonClick()
 {
-    //lật sang trang cartPage
     ui->pageStackedWidget->setCurrentWidget(ui->cartPage);
 
 
@@ -316,28 +314,25 @@ void ClientDashboard::on_addToCartButton_clicked()
 
             } catch (const std::exception& e) {
 
-                QMessageBox::warning(this, "Lỗi Giỏ hàng", QString("Không thể thêm %1: %2").arg(QString::fromStdString(petName), e.what()));
+                QMessageBox::warning(this, "Cart Error", QString("Cannot add %1: %2").arg(QString::fromStdString(petName), e.what()));
             }
         }
     }
 
 
     if (petsAddedCount > 0) {
-        QMessageBox::information(this, "Thành công", QString("Đã thêm %1 thú cưng vào giỏ hàng!").arg(petsAddedCount));
+        QMessageBox::information(this, "Success", QString("Added %1 pet to cart!").arg(petsAddedCount));
     } else {
-        QMessageBox::warning(this, "Chưa chọn", "Bạn chưa chọn thú cưng nào để thêm vào giỏ.");
+        QMessageBox::warning(this, "Not selected yet", "You have not selected any pets to add to your cart.");
     }
 }
 
 void ClientDashboard::loadSpaDataToTable()
 {
-    if (!ui || !ui->spaTableWidget || !m_serviceRepo) return;
-
-    ui->spaTableWidget->blockSignals(true);
-    ui->spaTableWidget->setSortingEnabled(false);
-
+    ui->spaTableWidget->clearContents();
     ui->spaTableWidget->setRowCount(0);
     ui->spaTableWidget->setColumnCount(6);
+
     QStringList headers = {"Choose", "ID", "Name", "Description", "Price (VND)", "Time (minutes)"};
     ui->spaTableWidget->setHorizontalHeaderLabels(headers);
 
@@ -345,8 +340,7 @@ void ClientDashboard::loadSpaDataToTable()
     Node<Service>* current = services.getHead();
     int row = 0;
 
-    while (current != nullptr)
-    {
+    while (current != nullptr) {
         const Service& service = current->getData();
         ui->spaTableWidget->insertRow(row);
 
@@ -365,10 +359,10 @@ void ClientDashboard::loadSpaDataToTable()
         row++;
     }
 
-    ui->spaTableWidget->resizeColumnsToContents();
-    ui->spaTableWidget->setSortingEnabled(true);
-    ui->spaTableWidget->blockSignals(false);
+    ui->spaTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->spaTableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
+
 
 
 
@@ -389,11 +383,11 @@ void ClientDashboard::handleBookSpaClick()
 
 
     if (checkedCount == 0) {
-        QMessageBox::warning(this, "Chưa chọn", "Vui lòng chọn một dịch vụ để đặt lịch.");
+        QMessageBox::warning(this, "Not selected yet", "Please select a service to schedule.");
         return;
     }
     if (checkedCount > 1) {
-        QMessageBox::warning(this, "Chọn quá nhiều", "Vui lòng chỉ chọn 1 dịch vụ cho mỗi lần đặt lịch.");
+        QMessageBox::warning(this, "Select too many", "Please select only 1 service per booking.");
         return;
     }
 
@@ -408,7 +402,7 @@ void ClientDashboard::handleBookSpaClick()
 
     try {
         if (!m_bookingRepo->isTimeSlotAvailable(date, time)) {
-            QMessageBox::warning(this, "Trùng lịch", QString("Giờ %1 ngày %2 đã kín chỗ.").arg(QString::fromStdString(time), QString::fromStdString(date)));
+            QMessageBox::warning(this, "Duplicate booking", QString("Hour %1 day %2 is full.").arg(QString::fromStdString(time), QString::fromStdString(date)));
             return;
         }
 
@@ -420,10 +414,10 @@ void ClientDashboard::handleBookSpaClick()
 
         ui->spaTableWidget->item(checkedRow, 0)->setCheckState(Qt::Unchecked);
 
-        QMessageBox::information(this, "Thành công", QString("Đã đặt lịch: %1").arg(QString::fromStdString(serviceName)));
+        QMessageBox::information(this, "Success", QString("Scheduled: %1").arg(QString::fromStdString(serviceName)));
 
     } catch (const std::exception& e) {
-        QMessageBox::critical(this, "Lỗi", e.what());
+        QMessageBox::critical(this, "Error", e.what());
     }
 }
 
@@ -473,14 +467,14 @@ void ClientDashboard::handleBuy()
 
     if (!unavailablePets.isEmpty()) {
         std::string petId = unavailablePets.getHead()->getData();
-        QMessageBox::warning(this, "Lỗi Thanh toán",
-                             QString("Vật phẩm '%1' không còn tồn tại. Vui lòng xóa nó khỏi giỏ hàng.")
+        QMessageBox::warning(this, "Payment Error",
+                             QString("Item '%1' is no longer available. Please remove it from your cart.")
                                  .arg(QString::fromStdString(petId)));
         loadCartDataToTable();
         return;
     }
     if (itemsToBuy.isEmpty()) {
-        QMessageBox::warning(this, "Chưa chọn", "Bạn chưa chọn vật phẩm nào để mua.");
+        QMessageBox::warning(this, "Not selected yet", "You have not selected any items to purchase.");
         return;
     }
 
@@ -558,7 +552,7 @@ void ClientDashboard::handleBuy()
         loadCartDataToTable();
 
     } catch (const std::exception& e) {
-        QMessageBox::critical(this, "Lỗi Backend", e.what());
+        QMessageBox::critical(this, "Backend error", e.what());
     }
 }
 
@@ -568,44 +562,37 @@ void ClientDashboard::loadCartDataToTable()
 {
     ui->cartTableWidget->clearContents();
     ui->cartTableWidget->setRowCount(0);
-
-
     ui->cartTableWidget->setColumnCount(5);
+
     QStringList headers = {"Choose", "ID", "Name", "Type", "Price (VND)"};
     ui->cartTableWidget->setHorizontalHeaderLabels(headers);
-
 
     LinkedList<CartItem> items = m_cartRepo->getCartItems(m_currentClient->getId());
     Node<CartItem>* current = items.getHead();
     int row = 0;
 
-    while(current != nullptr)
-    {
+    while(current != nullptr) {
         CartItem item = current->getData();
         ui->cartTableWidget->insertRow(row);
 
-
-        QTableWidgetItem *selectBox = new QTableWidgetItem();
+        QTableWidgetItem* selectBox = new QTableWidgetItem();
         selectBox->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
         selectBox->setCheckState(Qt::Unchecked);
         ui->cartTableWidget->setItem(row, 0, selectBox);
 
-
         ui->cartTableWidget->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(item.getPetId())));
-
         ui->cartTableWidget->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(item.getPetName())));
-
-        ui->cartTableWidget->setItem(row, 3, new QTableWidgetItem("Thú cưng"));
-
+        ui->cartTableWidget->setItem(row, 3, new QTableWidgetItem("Pet"));
         ui->cartTableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(item.getPrice())));
 
         current = current->getNext();
         row++;
     }
 
-
-    ui->cartTableWidget->resizeColumnsToContents();
+    ui->cartTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->cartTableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
+
 
 void ClientDashboard::handleRemoveFromCart()
 {
@@ -628,9 +615,9 @@ void ClientDashboard::handleRemoveFromCart()
     }
 
     if (removedCount > 0) {
-        QMessageBox::information(this, "Thành công", QString("Đã xóa %1 vật phẩm khỏi giỏ hàng.").arg(removedCount));
+        QMessageBox::information(this, "Success", QString("%1 items removed from cart.").arg(removedCount));
     } else {
-        QMessageBox::warning(this, "Chưa chọn", "Bạn chưa chọn vật phẩm nào để xóa.");
+        QMessageBox::warning(this, "Not selected yet", "You have not selected any items to delete.");
     }
 }
 
@@ -706,8 +693,8 @@ void ClientDashboard::handleCancelBookingClick()
 
 
             if (status != "Pending") {
-                QMessageBox::warning(this, "Không thể hủy",
-                                     QString("Lịch đặt %1 đang ở trạng thái '%2'. Bạn chỉ có thể hủy lịch đang chờ (Pending).")
+                QMessageBox::warning(this, "Cannot be canceled",
+                                     QString("The booking %1 is in status '%2'. You can only cancel pending bookings.")
                                          .arg(QString::fromStdString(bookingId), QString::fromStdString(status)));
 
                 hasError = true;
@@ -730,12 +717,12 @@ void ClientDashboard::handleCancelBookingClick()
     }
 
     if (canceledCount > 0) {
-        QMessageBox::information(this, "Thành công", QString("Đã hủy thành công %1 lịch đặt.").arg(canceledCount));
+        QMessageBox::information(this, "Success", QString("%1 bookings canceled successfully.").arg(canceledCount));
     }
     else {
 
         if (!hasError) {
-            QMessageBox::warning(this, "Thông báo", "Vui lòng chọn ít nhất một lịch 'Pending' để hủy.");
+            QMessageBox::warning(this, "Notification", "Please select at least one 'Pending' schedule to cancel.");
         }
     }
 }
@@ -821,9 +808,9 @@ void ClientDashboard::loadBookingHistory()
             ui->historyTableWidget->setItem(row, 4, statusItem);
 
             if (status == "Completed")
-                statusItem->setForeground(QBrush(QColor("green"))); // Màu xanh cho hoàn thành
+                statusItem->setForeground(QBrush(QColor("green")));
             else if (status == "Cancelled")
-                statusItem->setForeground(QBrush(QColor("red")));   // Màu đỏ cho đã hủy
+                statusItem->setForeground(QBrush(QColor("red")));
 
             row++;
         }
@@ -849,7 +836,7 @@ void ClientDashboard::on_editProfileButton_clicked()
 {
     Client c = m_accountRepo->getClientInfo(m_currentClient->getId());
 
-    ui->editIdInput->setText(QString::fromStdString(c.getId())); // Read-only
+    ui->editIdInput->setText(QString::fromStdString(c.getId()));
     ui->editPassInput->setText(QString::fromStdString(c.getPassword()));
     ui->editNameInput->setText(QString::fromStdString(c.getName()));
     ui->editStreetInput->setText(QString::fromStdString(c.getStreet()));
@@ -858,7 +845,7 @@ void ClientDashboard::on_editProfileButton_clicked()
     if (c.getGender() == "Male") ui->editMaleRadio->setChecked(true);
     else ui->editFemaleRadio->setChecked(true);
 
-    ui->pageStackedWidget->setCurrentWidget(ui->profileEditPage); // Lật trang
+    ui->pageStackedWidget->setCurrentWidget(ui->profileEditPage);
 }
 
 void ClientDashboard::on_saveProfileButton_clicked()
@@ -872,7 +859,7 @@ void ClientDashboard::on_saveProfileButton_clicked()
     std::string gender = ui->editMaleRadio->isChecked() ? "Male" : "Female";
 
     if (pass.empty() || name.empty() || street.empty() || city.empty()) {
-        QMessageBox::warning(this, "Lỗi", "Vui lòng không để trống thông tin.");
+        QMessageBox::warning(this, "Error", "Please do not leave information blank.");
         return;
     }
 
@@ -884,13 +871,13 @@ void ClientDashboard::on_saveProfileButton_clicked()
         ui->welcomeTitleLabel->setText("Welcome back, " + QString::fromStdString(name));
         ui->userNameLabel->setText(QString::fromStdString(name));
 
-        QMessageBox::information(this, "Thành công", "Cập nhật hồ sơ thành công!");
+        QMessageBox::information(this, "Success", "Profile updated successfully!");
 
         ui->pageStackedWidget->setCurrentWidget(ui->profileViewPage);
         loadProfileData();
 
     } catch (const std::exception& e) {
-        QMessageBox::critical(this, "Lỗi", e.what());
+        QMessageBox::critical(this, "Error", e.what());
     }
 }
 
