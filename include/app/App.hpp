@@ -17,11 +17,8 @@ private:
   AccountRepository accountRepo;
 
   void handleLogin() {
-    // Menu::clearScreen();
-    // Menu::displayHeader("LOGIN");
 
     Account *account = authService.login();
-
     if (account == nullptr) {
       Menu::displayError("Login failed!");
       Menu::pause();
@@ -57,7 +54,6 @@ private:
 
     delete account; // Clean up
   }
-
   void handleRegister() {
     Menu::clearScreen();
     Menu::displayHeader("CLIENT REGISTRATION");
@@ -108,7 +104,6 @@ private:
 
 public:
   App() {}
-
   void run() {
     int choice;
 

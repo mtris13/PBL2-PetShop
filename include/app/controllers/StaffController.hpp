@@ -39,7 +39,6 @@ private:
       displayCats();
     }
   }
-
   void displayDogs() {
     system("cls");
 
@@ -88,7 +87,6 @@ private:
 
     file.close();
   }
-
   void displayCats() {
     system("cls");
 
@@ -138,12 +136,10 @@ private:
 
     file.close();
   }
-
   void viewSpaServices() {
     Menu::clearScreen();
     spaService.displayAllSpaServices();
   }
-
   void manageBookings() {
     int choice;
     do {
@@ -175,14 +171,12 @@ private:
         Menu::pause();
     } while (choice != 0);
   }
-
   void viewBookingsByDate() {
     string date;
     cout << "Enter Date (dd/mm/yyyy): ";
     cin >> date;
     spaService.viewBookingsByDate(date);
   }
-
   void confirmBooking() {
     system("cls");
     spaService.viewAllBookings();
@@ -191,7 +185,6 @@ private:
     cin >> bookingId;
     spaService.confirmBooking(bookingId);
   }
-
   void completeBooking() {
     system("cls");
     spaService.viewAllBookings();
@@ -200,7 +193,6 @@ private:
     cin >> bookingId;
     spaService.completeBooking(bookingId);
   }
-
   void viewTodaySchedule() {
     system("cls");
 
@@ -216,7 +208,6 @@ private:
     cout << "Date: " << today << "\n";
     spaService.viewBookingsByDate(today);
   }
-
   void createClientAccount() {
     system("cls");
 

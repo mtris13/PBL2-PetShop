@@ -84,6 +84,7 @@ private:
 
     QButtonGroup* m_petTypeGroup;
     QButtonGroup* m_historyGroup;
+    QButtonGroup* m_navGroup;
     QString m_currentPetTypeFilter;
     QString m_currentSearchKeyword;
 

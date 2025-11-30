@@ -184,7 +184,7 @@ QLabel#logoImageLabel {
     <item row="0" column="0">
      <widget class="QStackedWidget" name="mainStackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="loginPage">
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
@@ -432,7 +432,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="text">
-          <string>TẠO TÀI KHOẢN</string>
+          <string>CREATE ACCOUNT</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="idLineEdit_create">
@@ -445,7 +445,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="placeholderText">
-          <string>ID (Số điện thoại)</string>
+          <string>ID (Phone Numbers)</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="passwordLineEdit_create">
@@ -458,7 +458,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="placeholderText">
-          <string>Mật khẩu</string>
+          <string>Password</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="nameLineEdit_create">
@@ -471,7 +471,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="placeholderText">
-          <string>Họ và tên</string>
+          <string>Name</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="streetLineEdit_create">
@@ -484,7 +484,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="placeholderText">
-          <string>Địa chỉ</string>
+          <string>Address</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="cityLineEdit_create">
@@ -497,7 +497,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="placeholderText">
-          <string>Tỉnh/Thành phố</string>
+          <string>City</string>
          </property>
         </widget>
         <widget class="QGroupBox" name="groupBox">
@@ -517,7 +517,7 @@ QLabel#logoImageLabel {
            <rect>
             <x>10</x>
             <y>30</y>
-            <width>141</width>
+            <width>158</width>
             <height>41</height>
            </rect>
           </property>
@@ -525,14 +525,14 @@ QLabel#logoImageLabel {
            <item>
             <widget class="QRadioButton" name="maleRadioButton">
              <property name="text">
-              <string>Nam</string>
+              <string>Male</string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QRadioButton" name="femaleRadioButton">
              <property name="text">
-              <string>Nữ</string>
+              <string>Female</string>
              </property>
             </widget>
            </item>
@@ -549,7 +549,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="text">
-          <string>TẠO TÀI KHOẢN</string>
+          <string>CREATE</string>
          </property>
         </widget>
         <widget class="QPushButton" name="backToLoginButton">
@@ -562,7 +562,7 @@ QLabel#logoImageLabel {
           </rect>
          </property>
          <property name="text">
-          <string>Quay lại</string>
+          <string>Back to login</string>
          </property>
         </widget>
        </widget>

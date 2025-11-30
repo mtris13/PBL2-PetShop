@@ -121,13 +121,14 @@ private:
 
     // Hàm hiển thị chi tiết hóa đơn (đọc file .txt)
     void showBillDetail(const std::string& billId);
-
+    void showBookingDetail(const std::string& bookingId);
     // Hàm khởi tạo UI cho trang History (nếu chưa làm bên Designer)
     void setupHistoryUI();
     bool m_isHistoryUiSetup = false;
     void setupStatsUI();
     bool m_isStatsUiSetup = false;
-
+    void loadBillHistoryTable(const QString& search);    // Bảng Hóa đơn (Cũ)
+    void loadBookingHistoryTable(const QString& search);
     // Hàm tính toán
     void calculateAndShowStats();
 
@@ -145,6 +146,10 @@ private:
     void setupProfileUI();
     // Hàm đổ dữ liệu từ Admin vào Form
     void loadProfileData();
+    // THÊM DÒNG NÀY:
+    void on_petTypeFilter_currentIndexChanged(int index);
+
+
 };
 
 #endif

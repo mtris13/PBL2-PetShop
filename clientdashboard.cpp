@@ -28,6 +28,40 @@ ClientDashboard::ClientDashboard(Client* client,
     m_currentSearchKeyword("")
 {
     ui->setupUi(this);
+    // Thêm vào clientdashboard.cpp sau ui->setupUi(this);
+
+    // Cập nhật StyleSheet cho Navigation Bar
+    QString currentStyle = this->styleSheet();
+    QString navStyle = R"(
+        /* Style chung cho các nút trong NavBar */
+        QWidget#navBar QPushButton {
+            text-align: left;
+            padding-left: 20px;
+            border: none;
+            color: #333333;
+            background-color: transparent;
+            font-size: 16px;
+        }
+
+        /* Hiệu ứng khi di chuột vào */
+        QWidget#navBar QPushButton:hover {
+            background-color: #FBCB2E;
+        }
+
+        /* QUAN TRỌNG: Style khi nút đang được CHỌN (Active) */
+        QWidget#navBar QPushButton:checked {
+            background-color: #FFFFFF;    /* Nền trắng nối liền với nội dung bên phải */
+            color: #FDD85D;               /* Chữ màu vàng thương hiệu (hoặc màu đen đậm nếu bạn thích) */
+            font-weight: bold;            /* Chữ đậm */
+            border-left: 5px solid #FDD85D; /* (Tùy chọn) Thêm viền trái để nhấn mạnh */
+        }
+    )";
+
+    // Gộp style cũ và style mới (nếu bạn muốn giữ style cũ, hoặc chỉ set navStyle nếu muốn thay thế phần nav)
+    ui->navBar->setStyleSheet(navStyle);
+
+    // Xóa style riêng lẻ của petsButton để nó tuân theo style chung
+    ui->petsButton->setStyleSheet("");
     setupHelpPage();
 
 
@@ -71,7 +105,26 @@ ClientDashboard::ClientDashboard(Client* client,
     m_historyGroup->addButton(ui->bookingHistoryButton);
     m_historyGroup->setExclusive(true);
 
+    m_navGroup = new QButtonGroup(this);
+    m_navGroup->addButton(ui->petsButton);
+    m_navGroup->addButton(ui->spaButton);
+    m_navGroup->addButton(ui->cartButton);
+    m_navGroup->addButton(ui->bookingsButton);
+    m_navGroup->addButton(ui->historyButton);
+    m_navGroup->addButton(ui->profileButton);
+    m_navGroup->addButton(ui->callButton);
 
+    // Đảm bảo chỉ 1 nút được chọn tại 1 thời điểm
+    m_navGroup->setExclusive(true);
+
+    // 2. Bật chế độ checkable cho tất cả các nút này
+    QList<QAbstractButton*> buttons = m_navGroup->buttons();
+    for(QAbstractButton* btn : buttons) {
+        btn->setCheckable(true);
+    }
+
+    // 3. Mặc định chọn trang Pets đầu tiên
+    ui->petsButton->setChecked(true);
 
 
     ui->dogToggleButton->setChecked(true);
@@ -673,9 +726,8 @@ void ClientDashboard::loadBookingsDataToTable()
 
         current = current->getNext();
     }
-    ui->bookingsTableWidget->resizeColumnsToContents();
+    ui->bookingsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
-
 
 void ClientDashboard::handleCancelBookingClick()
 {
@@ -771,7 +823,7 @@ void ClientDashboard::loadPurchaseHistory()
         row++;
     }
 
-    ui->historyTableWidget->resizeColumnsToContents();
+    ui->historyTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 
@@ -817,7 +869,7 @@ void ClientDashboard::loadBookingHistory()
 
         current = current->getNext();
     }
-    ui->historyTableWidget->resizeColumnsToContents();
+    ui->historyTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
 

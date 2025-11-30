@@ -49,11 +49,16 @@ AdminDashboard::AdminDashboard(Admin* admin,
 
     ui->manageAccountsButton->setChecked(true);
     ui->pageStackedWidget->setCurrentWidget(ui->manageAccountsPage);
-
+    ui->accStackedWidget->setCurrentWidget(ui->accListPage);
     ui->accountsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->accountsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->accountsTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->petStatusCheckbox->setStyleSheet("QCheckBox { color: black; font-weight: bold; }");
     loadAccountsTable();
+    connect(ui->petTypeFilter, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int index){
+                loadPetsTable(ui->petSearchInput->text());
+            });
 }
 
 AdminDashboard::~AdminDashboard()
@@ -293,71 +298,79 @@ void AdminDashboard::loadPetsTable(const QString& search) {
     ui->petsTable->setColumnCount(8);
     QStringList headers = {"ID", "Name", "Type", "Breed", "Price (VND)", "Status", "Characteristic", "HiddenType"};
     ui->petsTable->setHorizontalHeaderLabels(headers);
-    ui->petsTable->setColumnHidden(7, true); // Ẩn cột loại đi
+    ui->petsTable->setColumnHidden(7, true);
 
     int row = 0;
     std::string keyword = search.toLower().toStdString();
 
-    LinkedList<Dog> dogs = m_petRepo->searchDog("all", keyword);
-    Node<Dog>* dNode = dogs.getHead();
-    while(dNode != nullptr) {
-        Dog p = dNode->getData();
-        ui->petsTable->insertRow(row);
-        ui->petsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(p.getId())));
-        ui->petsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(p.getName())));
-        ui->petsTable->setItem(row, 2, new QTableWidgetItem("Dog"));
-        ui->petsTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(p.getBreed())));
-        ui->petsTable->setItem(row, 4, new QTableWidgetItem(QString::number(p.getPrice())));
+    // Lấy chỉ mục đang chọn: 0=All, 1=Dog, 2=Cat
+    int filterIndex = ui->petTypeFilter->currentIndex();
 
+    // --- LOAD DOGS ---
+    // Logic: Nếu chọn All (0) HOẶC chọn Dog (1) thì mới load chó
+    if (filterIndex == 0 || filterIndex == 1) {
+        LinkedList<Dog> dogs = m_petRepo->searchDog("all", keyword);
+        Node<Dog>* dNode = dogs.getHead();
+        while(dNode != nullptr) {
+            Dog p = dNode->getData();
+            ui->petsTable->insertRow(row);
+            ui->petsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(p.getId())));
+            ui->petsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(p.getName())));
+            ui->petsTable->setItem(row, 2, new QTableWidgetItem("Dog"));
+            ui->petsTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(p.getBreed())));
+            ui->petsTable->setItem(row, 4, new QTableWidgetItem(QString::number(p.getPrice())));
 
-        bool isAvailable = (p.getStatus() == "1" || p.getStatus() == "available");
+            bool isAvailable = (p.getStatus() == "1" || p.getStatus() == "available");
+            QString statusStr = isAvailable ? "Available" : "Sold";
+            QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
 
-        QString statusStr = isAvailable ? "Available" : "Sold";
-        QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
+            // Set màu chữ cho trạng thái
+            if(isAvailable) statusItem->setForeground(QBrush(QColor("green")));
+            else statusItem->setForeground(QBrush(QColor("red")));
 
-        if(isAvailable) statusItem->setForeground(Qt::green);
-        else statusItem->setForeground(Qt::red);
-
-        ui->petsTable->setItem(row, 5, statusItem);
-
-        ui->petsTable->setItem(row, 6, new QTableWidgetItem("Energy: " + QString::number(p.getEnergyLevel()) + "/10"));
-        ui->petsTable->setItem(row, 7, new QTableWidgetItem("dog")); // Đánh dấu là chó
-        row++;
-        dNode = dNode->getNext();
+            ui->petsTable->setItem(row, 5, statusItem);
+            ui->petsTable->setItem(row, 6, new QTableWidgetItem("Energy: " + QString::number(p.getEnergyLevel()) + "/10"));
+            ui->petsTable->setItem(row, 7, new QTableWidgetItem("dog"));
+            row++;
+            dNode = dNode->getNext();
+        }
     }
 
-    // Load Cats
-    LinkedList<Cat> cats = m_petRepo->searchCat("all", keyword);
-    Node<Cat>* cNode = cats.getHead();
-    while(cNode != nullptr) {
-        Cat p = cNode->getData();
-        ui->petsTable->insertRow(row);
-        ui->petsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(p.getId())));
-        ui->petsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(p.getName())));
-        ui->petsTable->setItem(row, 2, new QTableWidgetItem("Cat"));
-        ui->petsTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(p.getBreed())));
-        ui->petsTable->setItem(row, 4, new QTableWidgetItem(QString::number(p.getPrice())));
+    // --- LOAD CATS ---
+    // Logic: Nếu chọn All (0) HOẶC chọn Cat (2) thì mới load mèo
+    if (filterIndex == 0 || filterIndex == 2) {
+        LinkedList<Cat> cats = m_petRepo->searchCat("all", keyword);
+        Node<Cat>* cNode = cats.getHead();
+        while(cNode != nullptr) {
+            Cat p = cNode->getData();
+            ui->petsTable->insertRow(row);
+            ui->petsTable->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(p.getId())));
+            ui->petsTable->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(p.getName())));
+            ui->petsTable->setItem(row, 2, new QTableWidgetItem("Cat"));
+            ui->petsTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(p.getBreed())));
+            ui->petsTable->setItem(row, 4, new QTableWidgetItem(QString::number(p.getPrice())));
 
-        bool isAvailable = (p.getStatus() == "1" || p.getStatus() == "available");
+            bool isAvailable = (p.getStatus() == "1" || p.getStatus() == "available");
+            QString statusStr = isAvailable ? "Available" : "Sold";
+            QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
 
-        QString statusStr = isAvailable ? "Available" : "Sold";
-        QTableWidgetItem* statusItem = new QTableWidgetItem(statusStr);
+            if(isAvailable) statusItem->setForeground(QBrush(QColor("green")));
+            else statusItem->setForeground(QBrush(QColor("red")));
 
-        if(isAvailable) statusItem->setForeground(Qt::green);
-        else statusItem->setForeground(Qt::red);
-
-        ui->petsTable->setItem(row, 5, statusItem);
-        // ---------------------------
-
-        ui->petsTable->setItem(row, 6, new QTableWidgetItem("Fur: " + QString::fromStdString(p.getFurLength())));
-        ui->petsTable->setItem(row, 7, new QTableWidgetItem("cat")); // Đánh dấu là mèo
-        row++;
-        cNode = cNode->getNext();
+            ui->petsTable->setItem(row, 5, statusItem);
+            ui->petsTable->setItem(row, 6, new QTableWidgetItem("Fur: " + QString::fromStdString(p.getFurLength())));
+            ui->petsTable->setItem(row, 7, new QTableWidgetItem("cat"));
+            row++;
+            cNode = cNode->getNext();
+        }
     }
     ui->petsTable->resizeColumnsToContents();
 }
 
-
+void AdminDashboard::on_petTypeFilter_currentIndexChanged(int index) {
+    // Khi đổi filter (All/Dog/Cat), load lại bảng ngay lập tức
+    loadPetsTable(ui->petSearchInput->text());
+}
 void AdminDashboard::on_petSearchButton_clicked() {
     loadPetsTable(ui->petSearchInput->text());
 }
@@ -389,7 +402,7 @@ void AdminDashboard::on_addPetButton_clicked() {
     ui->petDescInput->clear();
     ui->dogEnergyInput->setValue(5);
     ui->catFurInput->clear();
-
+ui->petStatusCheckbox->setChecked(true);
     ui->dogRadio->setEnabled(true);
     ui->catRadio->setEnabled(true);
 
@@ -427,6 +440,8 @@ void AdminDashboard::on_editPetButton_clicked() {
         ui->petPriceInput->setText(QString::number(d.getPrice()));
         ui->petDescInput->setText(QString::fromStdString(d.getDescription()));
         ui->dogEnergyInput->setValue(d.getEnergyLevel());
+        bool isAvail = (d.getStatus() == "1" || d.getStatus() == "available");
+        ui->petStatusCheckbox->setChecked(isAvail);
     } else {
         ui->catRadio->setChecked(true);
         Cat c = m_petRepo->getCatInfo(m_editingId);
@@ -436,6 +451,8 @@ void AdminDashboard::on_editPetButton_clicked() {
         ui->petPriceInput->setText(QString::number(c.getPrice()));
         ui->petDescInput->setText(QString::fromStdString(c.getDescription()));
         ui->catFurInput->setText(QString::fromStdString(c.getFurLength()));
+        bool isAvail = (c.getStatus() == "1" || c.getStatus() == "available");
+        ui->petStatusCheckbox->setChecked(isAvail);
     }
     ui->petIdInput->setText(id);
 }
@@ -456,7 +473,7 @@ void AdminDashboard::on_savePetButton_clicked() {
     std::string desc = ui->petDescInput->text().toStdString();
     if (desc.empty()) desc = "No description";
 
-    bool status = true;
+    bool status = ui->petStatusCheckbox->isChecked();
 
     if (ui->dogRadio->isChecked()) {
         int energy = ui->dogEnergyInput->value();
@@ -652,14 +669,15 @@ void AdminDashboard::on_cancelServiceButton_clicked() {
 void AdminDashboard::setupHistoryUI() {
     if (m_isHistoryUiSetup) return;
 
+    // Kiểm tra layout, nếu chưa có thì tạo mới
     if (ui->historyPage->layout() == nullptr) {
         QVBoxLayout* mainLayout = new QVBoxLayout(ui->historyPage);
 
+        // 1. THANH TÌM KIẾM (Giữ nguyên)
         QHBoxLayout* toolbarLayout = new QHBoxLayout();
-
         QLineEdit* searchInput = new QLineEdit(ui->historyPage);
         searchInput->setObjectName("historySearchInput");
-        searchInput->setPlaceholderText("Search by ID, name or date (dd/mm/yyyy)...");
+        searchInput->setPlaceholderText("Search by ID, Name, Date...");
 
         QPushButton* searchBtn = new QPushButton("Search", ui->historyPage);
         searchBtn->setObjectName("historySearchButton");
@@ -669,20 +687,85 @@ void AdminDashboard::setupHistoryUI() {
         toolbarLayout->addWidget(searchInput);
         toolbarLayout->addWidget(searchBtn);
 
-        QTableWidget* table = new QTableWidget(ui->historyPage);
-        table->setObjectName("historyTable");
-        table->setSelectionBehavior(QAbstractItemView::SelectRows);
-        table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        table->setAlternatingRowColors(true);
-        table->verticalHeader()->setVisible(false);
+        // 2. TẠO TAB WIDGET (Booking | Sale)
 
+        QTabWidget* tabWidget = new QTabWidget(ui->historyPage);
+        tabWidget->setObjectName("historyTabWidget");
+
+        // --- STYLE MỚI: NỔI BẬT HƠN (Vàng - Đỏ) ---
+        tabWidget->setStyleSheet(
+            // Khung viền của nội dung tab
+            "QTabWidget::pane { border: 2px solid #D32F2F; background: #FFFFFF; }"
+
+            // Tab trạng thái bình thường (Chưa chọn): Nền xám đậm, Chữ trắng
+            "QTabBar::tab { "
+            "    background: #555555; "
+            "    color: #FFFFFF; "
+            "    min-width: 150px; "
+            "    padding: 10px; "
+            "    font-weight: bold; "
+            "    margin-right: 2px; "
+            "    border-top-left-radius: 4px; "
+            "    border-top-right-radius: 4px; "
+            "}"
+
+            // Tab khi rê chuột vào: Sáng hơn chút
+            "QTabBar::tab:hover { background: #777777; }"
+
+
+            "QTabBar::tab:selected { "
+            "    background: #FDD85D; " /* Màu vàng thương hiệu Admin */
+            "    color: #D32F2F; "      /* Chữ đỏ đậm */
+            "    border-bottom: 3px solid #D32F2F; " /* Gạch chân đỏ */
+            "}"
+            );
+
+        // --- TAB 1: BOOKING HISTORY ---
+        QWidget* bookingTab = new QWidget();
+        QVBoxLayout* bookingLayout = new QVBoxLayout(bookingTab);
+        QTableWidget* tblBooking = new QTableWidget();
+        tblBooking->setObjectName("tblBookingHistory");
+        tblBooking->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        tblBooking->setSelectionBehavior(QAbstractItemView::SelectRows);
+        tblBooking->setAlternatingRowColors(true);
+        tblBooking->verticalHeader()->setVisible(false);
+        // Setup cột cho Booking
+        tblBooking->setColumnCount(6);
+        tblBooking->setHorizontalHeaderLabels({"ID", "Customer", "Service", "Date", "Time", "Detail"});
+        tblBooking->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // Giãn cột tên khách
+        bookingLayout->addWidget(tblBooking);
+
+        // --- TAB 2: SALE HISTORY (Hóa đơn) ---
+        QWidget* saleTab = new QWidget();
+        QVBoxLayout* saleLayout = new QVBoxLayout(saleTab);
+        QTableWidget* tblSale = new QTableWidget();
+        tblSale->setObjectName("tblSaleHistory"); // Đổi tên để dễ tìm
+        tblSale->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        tblSale->setSelectionBehavior(QAbstractItemView::SelectRows);
+        tblSale->setAlternatingRowColors(true);
+        tblSale->verticalHeader()->setVisible(false);
+        // Setup cột cho Bill
+        tblSale->setColumnCount(6);
+        tblSale->setHorizontalHeaderLabels({"ID", "Customer", "Date", "Time", "Total (VND)", "Detail"});
+        tblSale->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        saleLayout->addWidget(tblSale);
+
+        // Thêm các tab vào Widget
+        tabWidget->addTab(bookingTab, "Booking History");
+        tabWidget->addTab(saleTab, "Sales History");
+
+        // Thêm vào layout chính
         mainLayout->addLayout(toolbarLayout);
-        mainLayout->addWidget(table);
+        mainLayout->addWidget(tabWidget);
 
-        connect(searchBtn, &QPushButton::clicked, this, &AdminDashboard::on_historySearchButton_clicked);
-        connect(searchInput, &QLineEdit::returnPressed, this, &AdminDashboard::on_historySearchButton_clicked);
+        // Kết nối sự kiện tìm kiếm
+        connect(searchBtn, &QPushButton::clicked, this, [this, searchInput](){
+            loadHistoryTable(searchInput->text());
+        });
+        connect(searchInput, &QLineEdit::returnPressed, this, [this, searchInput](){
+            loadHistoryTable(searchInput->text());
+        });
     }
-
     m_isHistoryUiSetup = true;
 }
 
@@ -691,57 +774,9 @@ void AdminDashboard::setupHistoryUI() {
 
 
 void AdminDashboard::loadHistoryTable(const QString& search) {
-
-    QTableWidget* table = ui->historyPage->findChild<QTableWidget*>("historyTable");
-    if (!table) return;
-
-    table->setRowCount(0);
-    table->setColumnCount(6);
-    QStringList headers = {"ID", "Customer", "Date", "Time", "Total (VND)", "Description"};
-    table->setHorizontalHeaderLabels(headers);
-
-
-    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // Tên khách giãn hết cỡ
-
-
-    LinkedList<Bill> bills = m_billRepo->getAllBills();
-    Node<Bill>* node = bills.getHead();
-    int row = 0;
-    std::string keyword = search.toLower().toStdString();
-
-    while(node != nullptr) {
-        Bill b = node->getData();
-
-        std::string id = b.getBillId(); std::transform(id.begin(), id.end(), id.begin(), ::tolower);
-        std::string name = b.getClientName(); std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-        std::string date = b.getDate();
-
-        if (keyword.empty() ||
-            id.find(keyword) != std::string::npos ||
-            name.find(keyword) != std::string::npos ||
-            date.find(keyword) != std::string::npos) {
-
-            table->insertRow(row);
-            table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(b.getBillId())));
-            table->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(b.getClientName())));
-            table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(b.getDate())));
-            table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(b.getTime())));
-            table->setItem(row, 4, new QTableWidgetItem(QString::number(b.getTotalAmount())));
-
-            QPushButton* viewBtn = new QPushButton("View");
-            viewBtn->setCursor(Qt::PointingHandCursor);
-            viewBtn->setStyleSheet("background-color: #4CAF50; color: white; border-radius: 3px; padding: 2px 10px;");
-
-            std::string billIdStr = b.getBillId();
-            connect(viewBtn, &QPushButton::clicked, [this, billIdStr]() {
-                showBillDetail(billIdStr);
-            });
-
-            table->setCellWidget(row, 5, viewBtn);
-            row++;
-        }
-        node = node->getNext();
-    }
+    // Gọi hàm load cho cả 2 bảng
+    loadBookingHistoryTable(search);
+    loadBillHistoryTable(search);
 }
 
 void AdminDashboard::on_historySearchButton_clicked() {
@@ -1091,4 +1126,153 @@ void AdminDashboard::on_saveProfileButton_clicked() {
     ui->userNameLabel->setText(newName);
 
     QMessageBox::information(this, "Success", "Admin information has been updated!");
+}
+void AdminDashboard::loadBillHistoryTable(const QString& search) {
+    // Tìm bảng Sale theo tên đã đặt ở bước 2.1
+    QTableWidget* table = ui->historyPage->findChild<QTableWidget*>("tblSaleHistory");
+    if (!table) return;
+
+    table->setRowCount(0);
+    // ... (Các bước setup header đã làm lúc tạo bảng rồi nên bỏ qua)
+
+    LinkedList<Bill> bills = m_billRepo->getAllBills();
+    Node<Bill>* node = bills.getHead();
+    int row = 0;
+    std::string keyword = search.toLower().toStdString();
+
+    while(node != nullptr) {
+        Bill b = node->getData();
+        std::string id = b.getBillId(); std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+        std::string name = b.getClientName(); std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+        std::string date = b.getDate();
+
+        if (keyword.empty() || id.find(keyword) != std::string::npos ||
+            name.find(keyword) != std::string::npos || date.find(keyword) != std::string::npos) {
+
+            table->insertRow(row);
+            table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(b.getBillId())));
+            table->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(b.getClientName())));
+            table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(b.getDate())));
+            table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(b.getTime())));
+
+            QTableWidgetItem* priceItem = new QTableWidgetItem(QString::number(b.getTotalAmount()));
+            priceItem->setForeground(Qt::blue);
+            priceItem->setFont(QFont("Arial", 9, QFont::Bold));
+            table->setItem(row, 4, priceItem);
+
+            // Nút View
+            QPushButton* viewBtn = new QPushButton("View");
+            viewBtn->setCursor(Qt::PointingHandCursor);
+            viewBtn->setStyleSheet("background-color: #4CAF50; color: white; border-radius: 3px; padding: 2px 10px;");
+            std::string billIdStr = b.getBillId();
+            connect(viewBtn, &QPushButton::clicked, [this, billIdStr]() {
+                showBillDetail(billIdStr);
+            });
+            table->setCellWidget(row, 5, viewBtn);
+            row++;
+        }
+        node = node->getNext();
+    }
+}
+void AdminDashboard::loadBookingHistoryTable(const QString& search) {
+    QTableWidget* table = ui->historyPage->findChild<QTableWidget*>("tblBookingHistory");
+    if (!table) return;
+
+    table->setRowCount(0);
+
+    LinkedList<Booking> bookings = m_bookingRepo->getAllBookings();
+    Node<Booking>* node = bookings.getHead();
+    int row = 0;
+    std::string keyword = search.toLower().toStdString();
+
+    while(node != nullptr) {
+        Booking b = node->getData();
+
+        // Lấy thông tin phụ để tìm kiếm
+        Client c = m_accountRepo->getClientInfo(b.getClientId());
+        Service s = m_serviceRepo->getServiceInfo(b.getServiceId());
+
+        std::string id = b.getBookingId(); std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+        std::string custName = c.getName(); std::transform(custName.begin(), custName.end(), custName.begin(), ::tolower);
+        std::string date = b.getDate();
+
+        // Chỉ hiện Completed hoặc Cancelled trong lịch sử (tùy bạn, ở đây tôi hiện tất cả để Admin dễ quản lý)
+        if (keyword.empty() || id.find(keyword) != std::string::npos ||
+            custName.find(keyword) != std::string::npos || date.find(keyword) != std::string::npos) {
+
+            table->insertRow(row);
+            table->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(b.getBookingId())));
+            table->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(c.getName())));
+            table->setItem(row, 2, new QTableWidgetItem(QString::fromStdString(s.getName())));
+            table->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(b.getDate())));
+            table->setItem(row, 4, new QTableWidgetItem(QString::fromStdString(b.getTime())));
+
+            // Nút View Booking
+            QPushButton* viewBtn = new QPushButton("View");
+            viewBtn->setCursor(Qt::PointingHandCursor);
+            // Đổi màu nút dựa trên trạng thái
+            if(b.getStatus() == "Completed")
+                viewBtn->setStyleSheet("background-color: #4CAF50; color: white; border-radius: 3px;"); // Xanh
+            else if(b.getStatus() == "Cancelled")
+                viewBtn->setStyleSheet("background-color: #F44336; color: white; border-radius: 3px;"); // Đỏ
+            else
+                viewBtn->setStyleSheet("background-color: #FF9800; color: white; border-radius: 3px;"); // Cam (Pending/Confirmed)
+
+            viewBtn->setText(QString::fromStdString(b.getStatus())); // Hiện trạng thái lên nút luôn cho gọn, hoặc để chữ View
+
+            std::string bookingIdStr = b.getBookingId();
+            connect(viewBtn, &QPushButton::clicked, [this, bookingIdStr]() {
+                showBookingDetail(bookingIdStr);
+            });
+            table->setCellWidget(row, 5, viewBtn);
+            row++;
+        }
+        node = node->getNext();
+    }
+}
+void AdminDashboard::showBookingDetail(const std::string& bookingId) {
+    // Tìm thông tin booking
+    Booking b;
+    bool found = false;
+    LinkedList<Booking> list = m_bookingRepo->getAllBookings();
+    Node<Booking>* node = list.getHead();
+    while(node){
+        if(node->getData().getBookingId() == bookingId) {
+            b = node->getData();
+            found = true;
+            break;
+        }
+        node = node->getNext();
+    }
+
+    if (!found) return;
+
+    Client c = m_accountRepo->getClientInfo(b.getClientId());
+    Service s = m_serviceRepo->getServiceInfo(b.getServiceId());
+
+    QString detail = QString("--- BOOKING DETAIL ---\n\n"
+                             "ID: %1\n"
+                             "Status: %2\n\n"
+                             "Customer: %3\n"
+                             "Phone: %4\n\n"
+                             "Service: %5\n"
+                             "Price: %6 VND\n"
+                             "Duration: %7 mins\n\n"
+                             "Date: %8\n"
+                             "Time: %9")
+                         .arg(QString::fromStdString(b.getBookingId()))
+                         .arg(QString::fromStdString(b.getStatus()))
+                         .arg(QString::fromStdString(c.getName()))
+                         .arg(QString::fromStdString(c.getId()))
+                         .arg(QString::fromStdString(s.getName()))
+                         .arg(s.getPrice())
+                         .arg(s.getDuration())
+                         .arg(QString::fromStdString(b.getDate()))
+                         .arg(QString::fromStdString(b.getTime()));
+
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Booking Detail");
+    msgBox.setText(detail);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.exec();
 }

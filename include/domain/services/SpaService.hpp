@@ -15,7 +15,6 @@ private:
   ServiceRepository serviceRepo;
   BookingRepository bookingRepo;
 
-  // Helper: hiển thị header bảng services
   void displayServiceTableHeader() {
     cout << "\n";
     cout << setw(8) << left << "ID" << setw(28) << left << "Service Name"
@@ -24,16 +23,12 @@ private:
          << "\n";
     cout << string(66, '-') << "\n";
   }
-
-  // Helper: hiển thị một dòng service
   void displayServiceRow(const Service &service) {
     cout << setw(8) << left << service.getId() << setw(28) << left
          << service.getName() << setw(15) << right << fixed << setprecision(0)
          << service.getPrice() << setw(15) << right << service.getDuration()
          << "\n";
   }
-
-  // Helper: hiển thị header bảng bookings
   void displayBookingTableHeader() {
     cout << "\n";
     cout << setw(8) << left << "ID" << setw(13) << left << "Client ID"
@@ -42,8 +37,6 @@ private:
          << "\n";
     cout << string(61, '-') << "\n";
   }
-
-  // Helper: hiển thị một dòng booking
   void displayBookingRow(const Booking &booking) {
     cout << setw(8) << left << booking.getBookingId() << setw(13) << left
          << booking.getClientId() << setw(8) << left << booking.getServiceId()
@@ -54,10 +47,6 @@ private:
 
 public:
   SpaService() {}
-
-  // ===== 1. HIỂN THỊ DỊCH VỤ SPA =====
-
-  // Hiển thị tất cả dịch vụ spa
   void displayAllSpaServices() {
     LinkedList<Service> services = serviceRepo.getAllServices();
 
@@ -77,8 +66,6 @@ public:
     cout << "\nTotal: " << services.getSize() << " spa services\n";
     cout << "=======================================\n";
   }
-
-  // Hiển thị chi tiết một dịch vụ
   void displaySpaServiceDetails(const string &serviceId) {
     if (!serviceRepo.isValidServiceId(serviceId)) {
       cout << "Error: Spa service not found: " << serviceId << "\n";
@@ -89,35 +76,26 @@ public:
     cout << "\n";
     cout << service;
   }
-
-  // ===== 2. ĐẶT LỊCH SPA =====
-
-  // Đặt lịch mới
   bool createBooking(const string &clientId, const string &petId,
                      const string &serviceId, const string &date,
                      const string &time) {
-    // Kiểm tra service có tồn tại
     if (!serviceRepo.isValidServiceId(serviceId)) {
       cout << "Error: Invalid spa service ID: " << serviceId << "\n";
       return false;
     }
 
-    // Kiểm tra thời gian có available không
     if (!bookingRepo.isTimeSlotAvailable(date, time)) {
       cout << "Error: Time slot " << date << " " << time
            << " is already booked!\n";
       return false;
     }
 
-    // Tạo booking ID tự động
     string bookingId = bookingRepo.generateBookingId();
 
-    // Tạo booking mới
     Booking newBooking(bookingId, clientId, petId, serviceId, date, time,
                        "Pending");
     bookingRepo.createBooking(newBooking);
 
-    // Lấy thông tin service để hiển thị
     Service service = serviceRepo.getServiceInfo(serviceId);
 
     cout << "\n===== BOOKING CREATED SUCCESSFULLY =====\n";
@@ -133,9 +111,6 @@ public:
     return true;
   }
 
-  // ===== 3. XÓA LỊCH (HỦY BOOKING) =====
-
-  // Hủy booking
   bool cancelBooking(const string &bookingId) {
     if (!bookingRepo.isValidBookingId(bookingId)) {
       cout << "Error: Booking not found: " << bookingId << "\n";
@@ -144,7 +119,6 @@ public:
 
     Booking booking = bookingRepo.getBookingInfo(bookingId);
 
-    // Kiểm tra trạng thái
     if (booking.getStatus() == "Completed") {
       cout << "Error: Cannot cancel completed booking!\n";
       return false;
@@ -155,7 +129,6 @@ public:
       return false;
     }
 
-    // Cập nhật status thành Cancelled
     bookingRepo.updateStatus(bookingId, "Cancelled");
 
     cout << "\n===== BOOKING CANCELLED =====\n";
@@ -167,8 +140,6 @@ public:
 
     return true;
   }
-
-  // Xóa vĩnh viễn booking (dành cho Admin)
   bool deleteBookingPermanent(const string &bookingId) {
     if (!bookingRepo.isValidBookingId(bookingId)) {
       cout << "Error: Booking not found: " << bookingId << "\n";
@@ -179,10 +150,6 @@ public:
     cout << "Booking " << bookingId << " has been permanently deleted.\n";
     return true;
   }
-
-  // ===== 4. XEM LỊCH ĐÃ ĐẶT =====
-
-  // Xem tất cả bookings của một client
   void viewMyBookings(const string &clientId) {
     LinkedList<Booking> bookings = bookingRepo.getBookingsByClient(clientId);
 
@@ -203,8 +170,6 @@ public:
     cout << "\nTotal: " << bookings.getSize() << " bookings\n";
     cout << "=====================================\n";
   }
-
-  // Xem chi tiết một booking
   void viewBookingDetails(const string &bookingId) {
     if (!bookingRepo.isValidBookingId(bookingId)) {
       cout << "Error: Booking not found: " << bookingId << "\n";
@@ -230,8 +195,6 @@ public:
     cout << "  Status: " << booking.getStatus() << "\n";
     cout << "===========================\n";
   }
-
-  // Xem bookings theo ngày (dành cho Staff/Admin)
   void viewBookingsByDate(const string &date) {
     LinkedList<Booking> bookings = bookingRepo.getBookingsByDate(date);
 
@@ -251,8 +214,6 @@ public:
     cout << "\nTotal: " << bookings.getSize() << " bookings\n";
     cout << "================================================\n";
   }
-
-  // Xem tất cả bookings (Admin/Staff)
   void viewAllBookings() {
     LinkedList<Booking> bookings = bookingRepo.getAllBookings();
 
@@ -272,10 +233,6 @@ public:
     cout << "\nTotal: " << bookings.getSize() << " bookings\n";
     cout << "==================================\n";
   }
-
-  // ===== 5. QUẢN LÝ DỊCH VỤ (ADMIN/STAFF) =====
-
-  // Thêm dịch vụ spa mới
   bool addSpaService(const string &id, const string &name, const string &desc,
                      long price, int duration) {
     if (serviceRepo.isValidServiceId(id)) {
@@ -288,8 +245,6 @@ public:
     cout << "Spa service added successfully: " << name << "\n";
     return true;
   }
-
-  // Cập nhật dịch vụ
   bool updateSpaService(const string &id, const string &name,
                         const string &desc, long price, int duration) {
     if (!serviceRepo.isValidServiceId(id)) {
@@ -302,8 +257,6 @@ public:
     cout << "Service updated successfully: " << name << "\n";
     return true;
   }
-
-  // Xóa dịch vụ
   bool deleteSpaService(const string &id) {
     if (!serviceRepo.isValidServiceId(id)) {
       cout << "Error: Service not found: " << id << "\n";
@@ -314,8 +267,6 @@ public:
     cout << "Service deleted: " << id << "\n";
     return true;
   }
-
-  // Xác nhận booking (Staff/Admin)
   bool confirmBooking(const string &bookingId) {
     if (!bookingRepo.isValidBookingId(bookingId)) {
       cout << "Error: Booking not found: " << bookingId << "\n";
@@ -326,8 +277,6 @@ public:
     cout << "Booking " << bookingId << " has been confirmed.\n";
     return true;
   }
-
-  // Hoàn thành booking
   bool completeBooking(const string &bookingId) {
     if (!bookingRepo.isValidBookingId(bookingId)) {
       cout << "Error: Booking not found: " << bookingId << "\n";
@@ -338,9 +287,6 @@ public:
     cout << "Booking " << bookingId << " has been completed.\n";
     return true;
   }
-
-  // ===== THỐNG KÊ =====
-
   void showStatistics() {
     int totalServices = serviceRepo.countServices();
     int totalBookings = bookingRepo.countBookings();

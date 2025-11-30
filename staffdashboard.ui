@@ -603,7 +603,7 @@ QTabBar::tab:selected {
       <item>
        <widget class="QStackedWidget" name="pageStackedWidget">
         <property name="currentIndex">
-         <number>2</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="posPetsPage">
          <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="7,3">
@@ -1049,7 +1049,7 @@ QTabBar::tab:selected {
           <item>
            <widget class="QTabWidget" name="historyTabWidget">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tabBookingHistory">
              <attribute name="title">

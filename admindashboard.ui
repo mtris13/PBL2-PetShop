@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>779</height>
+    <height>811</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -257,7 +257,7 @@ QRadioButton { color: #333; }
       <item>
        <widget class="QStackedWidget" name="pageStackedWidget">
         <property name="currentIndex">
-         <number>5</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="manageAccountsPage">
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -274,7 +274,7 @@ QRadioButton { color: #333; }
           <item>
            <widget class="QStackedWidget" name="accStackedWidget">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="accListPage">
              <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -536,7 +536,7 @@ QRadioButton { color: #333; }
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
                <widget class="QWidget" name="petToolbar" native="true">
-                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="4,1,1,2,1">
                  <item>
                   <widget class="QLineEdit" name="petSearchInput">
                    <property name="placeholderText">
@@ -555,6 +555,25 @@ QRadioButton { color: #333; }
                    <property name="text">
                     <string>🔍</string>
                    </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="petTypeFilter">
+                   <item>
+                    <property name="text">
+                     <string>All</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Dog</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>Cat</string>
+                    </property>
+                   </item>
                   </widget>
                  </item>
                  <item>
@@ -733,6 +752,13 @@ QRadioButton { color: #333; }
                   <widget class="QLineEdit" name="catFurInput">
                    <property name="placeholderText">
                     <string>Fur lenght (Short/Long)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="petStatusCheckbox">
+                   <property name="text">
+                    <string>Available for Sale</string>
                    </property>
                   </widget>
                  </item>
