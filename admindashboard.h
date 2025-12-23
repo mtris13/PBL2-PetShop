@@ -63,6 +63,7 @@ private slots:
     void handleStatsClick();
     void handleProfileClick();
     void handleLogoutClick();
+    void handleBackupClick();
 
     // --- ACCOUNTS
     void on_accSearchButton_clicked();
@@ -92,6 +93,7 @@ private slots:
 void on_historySearchButton_clicked();
     void on_filterStatsButton_clicked();
 void on_saveProfileButton_clicked();
+    void on_restoreButton_clicked();
 private:
     Ui::AdminDashboard *ui;
     Admin* m_currentAdmin;
@@ -148,7 +150,13 @@ private:
     void loadProfileData();
     // THÊM DÒNG NÀY:
     void on_petTypeFilter_currentIndexChanged(int index);
+    void setupBackupUI();
+    bool m_isBackupUiSetup = false;
+    void loadBackupTables(); // Hàm load dữ liệu từ file txt lên bảng
 
+    // Helper để đọc file deleted (Sẽ hoàn thiện khi bạn gửi file Repo)
+    void loadDeletedAccountsFromFile();
+    void loadDeletedPetsFromFile();
 
 };
 

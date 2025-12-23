@@ -8,6 +8,47 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QGroupBox>
+// --- DÁN ĐOẠN NÀY VÀO SAU CÁC DÒNG #INCLUDE VÀ TRƯỚC ADMIN DASHBOARD CONSTRUCTOR ---
+
+// Cấu trúc hỗ trợ đọc file Backup
+struct BackupInfo {
+    QString id;
+    QString date;
+    QString preview;
+    QString rawData;
+};
+
+// Hàm tách thông tin file Backup (Đã cập nhật để lấy RawData chính xác)
+BackupInfo parseBackupFile(const QString& filePath, const QString& type) {
+    QFile file(filePath);
+    BackupInfo info;
+    info.id = "Unknown";
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        in.setEncoding(QStringConverter::Utf8);
+#endif
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+
+            if (line.startsWith("Deleted Time:")) info.date = line.mid(14).trimmed();
+            else if (line.startsWith("ID:")) info.id = line.mid(3).trimmed();
+
+            // QUAN TRỌNG: Lấy dòng RawData
+            if (line.startsWith("RawData:")) {
+                info.rawData = line.mid(8).trimmed();
+            }
+
+            // Tạo chuỗi Preview
+            if (type == "Account" && line.startsWith("Name:")) info.preview = line;
+            if (type == "Pet" && line.startsWith("Name:")) info.preview = line;
+            if (type == "Spa" && line.startsWith("Service:")) info.preview = line;
+        }
+        file.close();
+    }
+    return info;
+}
 AdminDashboard::AdminDashboard(Admin* admin,
                                AccountRepository* accountRepo,
                                PetRepository* petRepo,
@@ -27,7 +68,9 @@ AdminDashboard::AdminDashboard(Admin* admin,
     m_billRepo(billRepo)
 {
     ui->setupUi(this);
-
+    QWidget* backupPage = new QWidget();
+    backupPage->setObjectName("backupPage");
+    ui->pageStackedWidget->addWidget(backupPage);
     ui->userNameLabel->setText(QString::fromStdString(m_currentAdmin->getName()));
 
     m_navGroup = new QButtonGroup(this);
@@ -38,6 +81,8 @@ AdminDashboard::AdminDashboard(Admin* admin,
     m_navGroup->addButton(ui->statsButton);
     m_navGroup->addButton(ui->profileButton);
     m_navGroup->setExclusive(true);
+    m_navGroup->addButton(ui->statsButton);
+    m_navGroup->addButton(ui->profileButton);
 
     connect(ui->manageAccountsButton, &QPushButton::clicked, this, &AdminDashboard::handleManageAccountsClick);
     connect(ui->managePetsButton, &QPushButton::clicked, this, &AdminDashboard::handleManagePetsClick);
@@ -59,6 +104,21 @@ AdminDashboard::AdminDashboard(Admin* admin,
             this, [this](int index){
                 loadPetsTable(ui->petSearchInput->text());
             });
+    QPushButton* backupBtn = new QPushButton("Backup / Restore", ui->navBar);
+    backupBtn->setObjectName("backupButton");
+    backupBtn->setCheckable(true);
+    backupBtn->setCursor(Qt::PointingHandCursor);
+    // Copy style của các nút khác (đã có trong file .ui styleSheet nhưng cần set lại objectName để ăn style)
+    // Hoặc đơn giản là chèn vào layout:
+    QVBoxLayout* navLayout = qobject_cast<QVBoxLayout*>(ui->navBar->layout());
+    if (navLayout) {
+        // Chèn vào trước nút Logout (Logout thường ở cuối cùng hoặc gần cuối)
+        // index count - 2 vì có spacer và logout
+        navLayout->insertWidget(navLayout->count() - 2, backupBtn);
+    }
+    m_navGroup->addButton(backupBtn);
+
+    connect(backupBtn, &QPushButton::clicked, this, &AdminDashboard::handleBackupClick);
 }
 
 AdminDashboard::~AdminDashboard()
@@ -499,7 +559,7 @@ void AdminDashboard::on_deletePetButton_clicked() {
 
     QString id = ui->petsTable->item(row, 0)->text();
     QString name = ui->petsTable->item(row, 1)->text();
-    QString type = ui->petsTable->item(row, 7)->text();
+    QString type = ui->petsTable->item(row, 7)->text(); // Cột ẩn chứa loại (dog/cat)
 
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Confirm deletion",
@@ -507,34 +567,67 @@ void AdminDashboard::on_deletePetButton_clicked() {
                                   QMessageBox::Yes|QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
-        // 1. Lấy nội dung để backup
         QString contentBackup;
+        QString rawData; // Dòng dữ liệu thô quan trọng cho Restore
+
+        // Xử lý riêng cho DOG và CAT
         if (type == "dog") {
             Dog d = m_petRepo->getDogInfo(id.toStdString());
-            // Format chuỗi tùy ý để dễ đọc
+
+            // 1. Tạo nội dung đọc được (Human readable)
             contentBackup = QString("Type: Dog\nName: %1\nBreed: %2\nPrice: %3\nDesc: %4")
                                 .arg(QString::fromStdString(d.getName()))
                                 .arg(QString::fromStdString(d.getBreed()))
                                 .arg(d.getPrice())
                                 .arg(QString::fromStdString(d.getDescription()));
+
+            // 2. Tạo dòng RawData chuẩn format: ID|Status|Name|Breed|Age|Price|Energy|Desc
+            // Lưu ý: Status "available" lưu là 1, ngược lại là 0
+            QString status = (d.getStatus() == "available") ? "1" : "0";
+
+            rawData = QString::fromStdString(d.getId()) + "|" +
+                      status + "|" +
+                      QString::fromStdString(d.getName()) + "|" +
+                      QString::fromStdString(d.getBreed()) + "|" +
+                      QString::number(d.getAge()) + "|" +
+                      QString::number(d.getPrice()) + "|" +
+                      QString::number(d.getEnergyLevel()) + "|" +
+                      "\"" + QString::fromStdString(d.getDescription()) + "\"";
+
         } else {
             Cat c = m_petRepo->getCatInfo(id.toStdString());
+
+            // 1. Tạo nội dung đọc được
             contentBackup = QString("Type: Cat\nName: %1\nBreed: %2\nPrice: %3\nDesc: %4")
                                 .arg(QString::fromStdString(c.getName()))
                                 .arg(QString::fromStdString(c.getBreed()))
                                 .arg(c.getPrice())
                                 .arg(QString::fromStdString(c.getDescription()));
+
+            // 2. Tạo dòng RawData chuẩn format: ID|Status|Name|Breed|Age|Price|Fur|Desc
+            QString status = (c.getStatus() == "available") ? "1" : "0";
+
+            rawData = QString::fromStdString(c.getId()) + "|" +
+                      status + "|" +
+                      QString::fromStdString(c.getName()) + "|" +
+                      QString::fromStdString(c.getBreed()) + "|" +
+                      QString::number(c.getAge()) + "|" +
+                      QString::number(c.getPrice()) + "|" +
+                      QString::fromStdString(c.getFurLength()) + "|" +
+                      "\"" + QString::fromStdString(c.getDescription()) + "\"";
         }
 
-        // 2. Ghi file Backup
+        // QUAN TRỌNG: Gắn dòng RawData vào cuối nội dung file
+        contentBackup += "\nRawData: " + rawData;
+
+        // 3. Ghi file Backup
         backupData("Pets", id, contentBackup);
 
-        // 3. Xóa trong Repo
-        if (type == "dog") m_petRepo->deletePet(id.toStdString());
-        else m_petRepo->deletePet(id.toStdString());
+        // 4. Xóa trong Repo
+        m_petRepo->deletePet(id.toStdString()); // Hàm deletePet trong repo của bạn xử lý chung cho cả 2
 
         loadPetsTable();
-        QMessageBox::information(this, "Đã xóa", "Deleted and backed up data to folder BackupData/Pets.");
+        QMessageBox::information(this, "Deleted", "Deleted and backed up data to folder BackupData/Pets.");
     }
 }
 
@@ -648,17 +741,29 @@ void AdminDashboard::on_deleteServiceButton_clicked() {
     QString id = ui->spaTable->item(row, 0)->text();
 
     if (QMessageBox::question(this, "Delete", "Delete service " + id + "?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes) {
-        // Backup
+
         Service s = m_serviceRepo->getServiceInfo(id.toStdString());
+
+        // 1. Tạo nội dung đọc được
         QString content = QString("Service: %1\nPrice: %2\nDesc: %3")
                               .arg(QString::fromStdString(s.getName()))
                               .arg(s.getPrice())
                               .arg(QString::fromStdString(s.getDescription()));
 
-        backupData("Spa", id, content);
+        // 2. Tạo dòng RawData chuẩn format: ID|Name|Desc|Price|Duration
+        QString rawData = QString::fromStdString(s.getId()) + "|" +
+                          QString::fromStdString(s.getName()) + "|" +
+                          QString::fromStdString(s.getDescription()) + "|" +
+                          QString::number(s.getPrice()) + "|" +
+                          QString::number(s.getDuration());
 
-        // Xóa
+        // QUAN TRỌNG: Gắn dòng RawData vào
+        content += "\nRawData: " + rawData;
+
+        // 3. Backup và Xóa
+        backupData("Spa", id, content);
         m_serviceRepo->deleteService(id.toStdString());
+
         loadSpaTable();
     }
 }
@@ -1275,4 +1380,340 @@ void AdminDashboard::showBookingDetail(const std::string& bookingId) {
     msgBox.setText(detail);
     msgBox.setIcon(QMessageBox::Information);
     msgBox.exec();
+}
+void AdminDashboard::setupBackupUI() {
+    if (m_isBackupUiSetup) return;
+
+    QWidget* backupPage = ui->pageStackedWidget->findChild<QWidget*>("backupPage");
+    if (!backupPage) return;
+
+    // Xóa layout cũ nếu có để cập nhật lại
+    if (backupPage->layout()) {
+        delete backupPage->layout();
+    }
+
+    QVBoxLayout* mainLayout = new QVBoxLayout(backupPage);
+
+    // 1. TIÊU ĐỀ
+    QLabel* title = new QLabel("RESTORE DELETED DATA");
+    title->setStyleSheet("font-size: 24px; font-weight: bold; color: #D32F2F; margin-bottom: 10px;");
+    title->setAlignment(Qt::AlignCenter);
+    mainLayout->addWidget(title);
+
+    // 2. TAB WIDGET (STYLE VÀNG - ĐỎ)
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->setObjectName("backupTabWidget");
+    tabWidget->setStyleSheet(
+        "QTabWidget::pane { border: 2px solid #D32F2F; background: #FFFFFF; }"
+        "QTabBar::tab { "
+        "    background: #555555; color: #FFFFFF; min-width: 120px; padding: 10px; "
+        "    font-weight: bold; margin-right: 2px; border-top-left-radius: 4px; border-top-right-radius: 4px; "
+        "}"
+        "QTabBar::tab:hover { background: #777777; }"
+        "QTabBar::tab:selected { "
+        "    background: #FDD85D; color: #D32F2F; border-bottom: 3px solid #D32F2F; " // Màu Vàng-Đỏ
+        "}"
+        );
+
+    // Hàm tạo bảng có thêm cột View
+    auto createTable = [](QString objName) -> QTableWidget* {
+        QTableWidget* t = new QTableWidget();
+        t->setObjectName(objName);
+        // Cột: ID, Info, Date, VIEW(Button), Path(Hidden), RawData(Hidden)
+        t->setColumnCount(6);
+        t->setHorizontalHeaderLabels({"ID", "Information Preview", "Deleted Date", "Detail", "", ""});
+        t->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        t->setColumnHidden(4, true); // Ẩn Path
+        t->setColumnHidden(5, true); // Ẩn RawData
+        t->setSelectionBehavior(QAbstractItemView::SelectRows);
+        t->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        return t;
+    };
+
+    // Tạo 3 Tab
+    QWidget* accTab = new QWidget();
+    QVBoxLayout* accLayout = new QVBoxLayout(accTab);
+    accLayout->addWidget(createTable("tblDeletedAccounts"));
+    tabWidget->addTab(accTab, "Deleted Accounts");
+
+    QWidget* petTab = new QWidget();
+    QVBoxLayout* petLayout = new QVBoxLayout(petTab);
+    petLayout->addWidget(createTable("tblDeletedPets"));
+    tabWidget->addTab(petTab, "Deleted Pets");
+
+    QWidget* spaTab = new QWidget();
+    QVBoxLayout* spaLayout = new QVBoxLayout(spaTab);
+    spaLayout->addWidget(createTable("tblDeletedSpa"));
+    tabWidget->addTab(spaTab, "Deleted Spa Services");
+
+    mainLayout->addWidget(tabWidget);
+
+    // 3. NÚT RESTORE
+    QHBoxLayout* actionLayout = new QHBoxLayout();
+    QPushButton* btnRestore = new QPushButton("RESTORE SELECTED");
+    btnRestore->setCursor(Qt::PointingHandCursor);
+    btnRestore->setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 12px 25px; font-size: 14px; border-radius: 5px; }"
+                              "QPushButton:hover { background-color: #45a049; }");
+
+    actionLayout->addStretch();
+    actionLayout->addWidget(btnRestore);
+    mainLayout->addLayout(actionLayout);
+
+    // KẾT NỐI SỰ KIỆN NÚT RESTORE
+    disconnect(btnRestore, nullptr, nullptr, nullptr);
+    connect(btnRestore, &QPushButton::clicked, this, &AdminDashboard::on_restoreButton_clicked);
+
+    m_isBackupUiSetup = true;
+}
+
+void AdminDashboard::loadBackupTables() {
+    // Helper thêm nút View
+    auto addViewButton = [this](QTableWidget* table, int row, QString filePath) {
+        QPushButton* viewBtn = new QPushButton("View Content");
+        viewBtn->setCursor(Qt::PointingHandCursor);
+        viewBtn->setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; font-size: 11px; border-radius: 3px; padding: 4px;");
+
+        connect(viewBtn, &QPushButton::clicked, [this, filePath]() {
+            QFile file(filePath);
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                in.setEncoding(QStringConverter::Utf8);
+#endif
+                QString content = in.readAll();
+                QMessageBox msgBox(this);
+                msgBox.setWindowTitle("Deleted File Detail");
+                msgBox.setText(content);
+                msgBox.setStyleSheet("QLabel{ min-width: 400px; }");
+                msgBox.exec();
+                file.close();
+            }
+        });
+        table->setCellWidget(row, 3, viewBtn); // Cột Index 3 là cột Detail
+    };
+
+    // 1. ACCOUNTS
+    QTableWidget* tblAcc = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedAccounts");
+    if (tblAcc) {
+        tblAcc->setRowCount(0);
+        QDir dir("BackupData/Accounts");
+        QStringList files = dir.entryList(QStringList() << "*.txt", QDir::Files);
+        for (const QString& f : files) {
+            QString path = dir.absoluteFilePath(f);
+            BackupInfo info = parseBackupFile(path, "Account");
+
+            int row = tblAcc->rowCount();
+            tblAcc->insertRow(row);
+            tblAcc->setItem(row, 0, new QTableWidgetItem(info.id));
+            tblAcc->setItem(row, 1, new QTableWidgetItem(info.preview));
+            tblAcc->setItem(row, 2, new QTableWidgetItem(info.date));
+            tblAcc->setItem(row, 4, new QTableWidgetItem(path));     // Ẩn
+            tblAcc->setItem(row, 5, new QTableWidgetItem(info.rawData)); // Ẩn
+            addViewButton(tblAcc, row, path);
+        }
+    }
+
+    // 2. PETS
+    QTableWidget* tblPet = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedPets");
+    if (tblPet) {
+        tblPet->setRowCount(0);
+        QDir dir("BackupData/Pets");
+        QStringList files = dir.entryList(QStringList() << "*.txt", QDir::Files);
+        for (const QString& f : files) {
+            QString path = dir.absoluteFilePath(f);
+            BackupInfo info = parseBackupFile(path, "Pet");
+
+            int row = tblPet->rowCount();
+            tblPet->insertRow(row);
+            tblPet->setItem(row, 0, new QTableWidgetItem(info.id));
+            tblPet->setItem(row, 1, new QTableWidgetItem(info.preview));
+            tblPet->setItem(row, 2, new QTableWidgetItem(info.date));
+            tblPet->setItem(row, 4, new QTableWidgetItem(path));
+            tblPet->setItem(row, 5, new QTableWidgetItem(info.rawData));
+            addViewButton(tblPet, row, path);
+        }
+    }
+
+    // 3. SPA
+    QTableWidget* tblSpa = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedSpa");
+    if (tblSpa) {
+        tblSpa->setRowCount(0);
+        QDir dir("BackupData/Spa");
+        QStringList files = dir.entryList(QStringList() << "*.txt", QDir::Files);
+        for (const QString& f : files) {
+            QString path = dir.absoluteFilePath(f);
+            BackupInfo info = parseBackupFile(path, "Spa");
+
+            int row = tblSpa->rowCount();
+            tblSpa->insertRow(row);
+            tblSpa->setItem(row, 0, new QTableWidgetItem(info.id));
+            tblSpa->setItem(row, 1, new QTableWidgetItem(info.preview));
+            tblSpa->setItem(row, 2, new QTableWidgetItem(info.date));
+            tblSpa->setItem(row, 4, new QTableWidgetItem(path));
+            tblSpa->setItem(row, 5, new QTableWidgetItem(info.rawData));
+            addViewButton(tblSpa, row, path);
+        }
+    }
+}
+void AdminDashboard::on_restoreButton_clicked() {
+    QTabWidget* tabWidget = ui->pageStackedWidget->findChild<QTabWidget*>("backupTabWidget");
+    if (!tabWidget) return;
+
+    // 1. Xác định đang ở Tab nào
+    int index = tabWidget->currentIndex();
+    QTableWidget* currentTable = nullptr;
+    QString type;
+
+    if (index == 0) {
+        currentTable = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedAccounts");
+        type = "Account";
+    }
+    else if (index == 1) {
+        currentTable = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedPets");
+        type = "Pet";
+    }
+    else if (index == 2) {
+        currentTable = ui->pageStackedWidget->findChild<QTableWidget*>("tblDeletedSpa");
+        type = "Spa";
+    }
+
+    if (!currentTable) return;
+
+    int row = currentTable->currentRow();
+    if (row < 0) {
+        QMessageBox::warning(this, "Select", "Please select an item to restore.");
+        return;
+    }
+
+    // 2. Lấy thông tin từ cột ẩn trong bảng
+    // Trong hàm on_restoreButton_clicked:
+
+    // SỬA DÒNG NÀY: Cột Path từ 3 -> 4, RawData từ 4 -> 5
+    QString filePath = currentTable->item(row, 4)->text();
+    QString rawData = currentTable->item(row, 5)->text();
+    QString id = currentTable->item(row, 0)->text();
+
+    if (rawData.isEmpty()) {
+        QMessageBox::critical(this, "Error", "Cannot find Raw Data to restore.");
+        return;
+    }
+
+    if (QMessageBox::question(this, "Confirm", "Restore ID: " + id + "?", QMessageBox::Yes|QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    // 3. Tách chuỗi RawData thành các phần
+    std::string line = rawData.toStdString();
+    vector<string> parts;
+    stringstream ss(line);
+    string segment;
+    while(getline(ss, segment, '|')) {
+        parts.push_back(segment);
+    }
+
+    bool success = false;
+
+    try {
+        // --- LOGIC ACCOUNT ---
+        if (type == "Account") {
+            if (parts.empty()) return;
+            string accId = parts[0];
+
+            if (accId.length() == 3) { // Admin
+                if (parts.size() >= 4) {
+                    Admin ad(parts[0], parts[1], parts[2], parts[3]);
+                    m_accountRepo->setAdminInfo(ad);
+                    success = true;
+                }
+            }
+            else if (accId.length() == 5) { // Staff
+                if (parts.size() >= 5) {
+                    Staff s(parts[0], parts[1], parts[2], parts[3], stol(parts[4]));
+                    m_accountRepo->setStaffInfo(s);
+                    success = true;
+                }
+            }
+            else if (accId.length() == 10) { // Client
+                if (parts.size() >= 6) {
+                    Client c(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5]);
+                    m_accountRepo->setClientInfo(c);
+                    success = true;
+                }
+            }
+        }
+        // --- LOGIC PET ---
+        else if (type == "Pet") {
+            if (parts.size() >= 8) {
+                string pId = parts[0];
+                bool status = (parts[1] == "1"); // 1 = Available, 0 = Sold
+                string name = parts[2];
+                string breed = parts[3];
+                int age = stoi(parts[4]);
+                long price = stol(parts[5]);
+                string specific = parts[6]; // Energy (Dog) hoặc Fur (Cat)
+                string desc = parts[7];
+
+                // Xóa dấu ngoặc kép trong Description nếu có
+                if (desc.size() >= 2 && desc.front() == '"' && desc.back() == '"') {
+                    desc = desc.substr(1, desc.size() - 2);
+                }
+
+                // Kiểm tra ID để biết là Chó hay Mèo
+                if (pId[0] == 'd' || pId[0] == 'D') {
+                    int energy = stoi(specific);
+                    Dog d(pId, name, breed, age, price, status, energy, desc);
+                    m_petRepo->setDogInfo(d);
+                    success = true;
+                }
+                else if (pId[0] == 'c' || pId[0] == 'C') {
+                    Cat c(pId, name, breed, age, price, status, specific, desc);
+                    m_petRepo->setCatInfo(c);
+                    success = true;
+                }
+            }
+        }
+        // --- LOGIC SPA ---
+        else if (type == "Spa") {
+            if (parts.size() >= 5) {
+                // Constructor Service: id, name, desc, price, duration
+                Service s(parts[0], parts[1], parts[2], stol(parts[3]), stoi(parts[4]));
+                m_serviceRepo->setServiceInfo(s);
+                success = true;
+            }
+        }
+
+        if (success) {
+            // Xóa file backup và load lại bảng
+            QFile::remove(filePath);
+            QMessageBox::information(this, "Success", "Restored successfully: " + id);
+            loadBackupTables();
+
+            // Cập nhật lại các bảng quản lý chính
+            if(type=="Account") loadAccountsTable();
+            else if(type=="Pet") loadPetsTable();
+            else if(type=="Spa") loadSpaTable();
+        } else {
+            QMessageBox::warning(this, "Error", "Data format invalid or corrupted.");
+        }
+
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Error", "Restore failed: " + QString(e.what()));
+    } catch (...) {
+        QMessageBox::critical(this, "Error", "Unknown error occurred during restore.");
+    }
+}
+// Dán đoạn này vào cuối file admindashboard.cpp
+
+void AdminDashboard::handleBackupClick() {
+    // Tìm trang Backup trong StackedWidget
+    QWidget* backupPage = ui->pageStackedWidget->findChild<QWidget*>("backupPage");
+
+    if (backupPage) {
+        // Chuyển sang trang Backup
+        ui->pageStackedWidget->setCurrentWidget(backupPage);
+
+        // Setup giao diện và load dữ liệu
+        setupBackupUI();
+        loadBackupTables();
+    }
 }

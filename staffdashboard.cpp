@@ -758,7 +758,7 @@ void StaffDashboard::loadSalesHistoryTable(const std::string& phoneFilter) {
         ui->salesHistoryTable->setItem(row, 3, new QTableWidgetItem(QString::fromStdString(b.getTime())));
 
         QTableWidgetItem* priceItem = new QTableWidgetItem(QString::number(b.getTotalAmount()) + " VND");
-        priceItem->setForeground(QBrush(QColor("darkblue")));
+        priceItem->setForeground(QBrush(QColor("yellow")));
         priceItem->setFont(QFont("Arial", 9, QFont::Bold));
         ui->salesHistoryTable->setItem(row, 4, priceItem);
 

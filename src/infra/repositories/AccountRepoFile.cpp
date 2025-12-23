@@ -1,4 +1,8 @@
 #include "infra/repositories/AccountRepoFile.hpp"
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QTextStream>
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -421,40 +425,56 @@ AccountStats AccountRepository::countAccount() {
 
 // (Dán vào cuối file)
 void AccountRepository::registerClient(const Client &newClient) {
-  // 1. Kiểm tra trùng ID
   if (isValidId(newClient.getId())) {
-    // Nếu ID đã tồn tại, ném ra lỗi để MainWindow bắt được
     throw std::runtime_error("ID (Số điện thoại) này đã tồn tại!");
   }
 
-  // 2. Tạo dòng dữ liệu: id|name|pass|gender|street|city
-  // (Lưu ý: ClientAccount.txt của bạn có format là
-  // id|name|pass|gender|street|city)
   string line = newClient.getId() + "|" + newClient.getName() + "|" +
                 newClient.getPassword() + "|" + newClient.getGender() + "|" +
                 newClient.getStreet() + "|" + newClient.getCity();
 
-  // 3. Ghi vào file (Sử dụng hàm writingFile có sẵn của bạn)
-  // Hàm writingFile của bạn đã có logic: Nếu không tìm thấy ID cũ, nó sẽ thêm
-  // mới xuống cuối. Vì vậy chúng ta có thể tái sử dụng nó.
   writingFile(newClient.getId(), line);
 }
-// AccountRepoFile.cpp
 
 void AccountRepository::backupDeletedLine(const string &line) {
-  // Tạo thư mục backup nếu chưa có (tùy hệ điều hành, ở đây ta cứ ghi thẳng)
-  // File backup chung cho tất cả tài khoản bị xóa
-  ofstream backupFile("data/deleted_accounts.txt", std::ios::app);
+  stringstream ss(line);
+  string id, name, temp;
+  getline(ss, id, '|');
+  getline(ss, name, '|');
 
-  if (backupFile.is_open()) {
-    // Ghi thêm thời gian xóa (Tùy chọn)
-    // time_t now = time(0);
-    // char* dt = ctime(&now);
-    // backupFile << "[" << dt << "] " << line << "\n";
+  string role = "Unknown";
+  if (id.length() == 3)
+    role = "Admin";
+  else if (id.length() == 5)
+    role = "Staff";
+  else if (id.length() == 10)
+    role = "Client";
 
-    backupFile << line << "\n"; // Ghi lại dòng dữ liệu cũ
-    backupFile.close();
-  } else {
-    cerr << "Warning: Cannot open backup file." << endl;
+  QString folderPath = "BackupData/Accounts";
+  QDir dir;
+  if (!dir.exists(folderPath)) {
+    dir.mkpath(folderPath);
+  }
+
+  QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
+  QString fileName = folderPath + "/Deleted_" + QString::fromStdString(id) +
+                     "_" + timestamp + ".txt";
+
+  QFile file(fileName);
+  if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QTextStream out(&file);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    out.setEncoding(QStringConverter::Utf8);
+#endif
+    out << "--- BACKUP DELETED DATA ---\n";
+    out << "Deleted Time: " << QDateTime::currentDateTime().toString() << "\n";
+    out << "ID: " << QString::fromStdString(id) << "\n";
+    out << "Content:\n";
+    out << "Role: " << QString::fromStdString(role) << "\n";
+    out << "Name: " << QString::fromStdString(name) << "\n";
+
+    out << "RawData: " << QString::fromStdString(line) << "\n";
+
+    file.close();
   }
 }
